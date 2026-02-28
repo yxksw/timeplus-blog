@@ -93,7 +93,7 @@ export default function Footer({ config, isVisible, onClose }: FooterProps) {
           
           {/* Footer Info */}
           <div className="pt-4 border-t border-[#36383c] flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#b5b5b5]">
-            <span>主题：<a href="https://github.com/zhheo/TimePlus" target="_blank" rel="noopener noreferrer" className="hover:text-white">洪墨时光</a></span>
+            <span>主题：<a href="https://github.com/zhheo/TimePlus" target="_blank" rel="noopener noreferrer" className="hover:text-white">洪墨时光</a> & 魔改者：<a href="https://github.com/yxksw" target="_blank" rel="noopener noreferrer" className="hover:text-white">异飨客</a></span>
             {config?.icp && (
               <span>
                 <a href="http://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-white">

@@ -4,11 +4,30 @@ import { SiteConfig } from '@/types/blog'
 
 interface FooterProps {
   config?: SiteConfig
+  isVisible?: boolean
+  onClose?: () => void
 }
 
-export default function Footer({ config }: FooterProps) {
+export default function Footer({ config, isVisible, onClose }: FooterProps) {
   return (
-    <footer id="footer" className="fixed bottom-20 left-0 w-full bg-[rgba(36,38,41,0.975)] backdrop-blur-xl z-[10001] transform translate-y-full transition-transform duration-500 py-8 px-8">
+    <footer 
+      id="footer" 
+      className={`fixed bottom-20 left-0 w-full bg-[rgba(36,38,41,0.975)] backdrop-blur-xl z-[10001] transition-transform duration-500 py-8 px-8 ${
+        isVisible ? 'translate-y-0' : 'translate-y-full'
+      }`}
+    >
+      <button 
+        onClick={onClose}
+        className="absolute top-4 right-4 w-12 h-12 opacity-50 hover:opacity-100 transition-opacity"
+        aria-label="关闭"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23fff' d='M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17l-22.6 22.6c-4.7 4.7-12.3 4.7-17 0L256 279.3l-82.1 82.1c-4.7 4.7-12.3 4.7-17 0l-22.6-22.6c-4.7-4.7-4.7-12.3 0-17l82.1-82.1-82.1-82.1c-4.7-4.7-4.7-12.3 0-17l22.6-22.6c4.7-4.7 12.3-4.7 17 0L256 232.7l82.1-82.1c4.7-4.7 12.3-4.7 17 0l22.6 22.6c4.7 4.7 4.7 12.3 0 17L293.9 256l82.1 82.1z'/%3E%3C/svg%3E")`,
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          backgroundSize: '2em',
+        }}
+      />
+      
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row gap-8">
           <section className="flex-1">

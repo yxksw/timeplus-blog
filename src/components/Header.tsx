@@ -6,9 +6,10 @@ import { useState } from 'react'
 
 interface HeaderProps {
   config?: SiteConfig
+  onAboutClick?: () => void
 }
 
-export default function Header({ config }: HeaderProps) {
+export default function Header({ config, onAboutClick }: HeaderProps) {
   const [showCategories, setShowCategories] = useState(false)
 
   return (
@@ -64,12 +65,12 @@ export default function Header({ config }: HeaderProps) {
           </li>
           
           <li>
-            <a 
-              href="#footer" 
+            <button 
+              onClick={onAboutClick}
               className="px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors"
             >
               关于
-            </a>
+            </button>
           </li>
         </ul>
       </nav>

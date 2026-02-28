@@ -14,6 +14,7 @@ export default function Home() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isPreload, setIsPreload] = useState(true)
+  const [showFooter, setShowFooter] = useState(false)
 
   useEffect(() => {
     loadBlogIndex()
@@ -61,6 +62,14 @@ export default function Home() {
     }
   }, [selectedPost])
 
+  const handleAboutClick = useCallback(() => {
+    setShowFooter((prev) => !prev)
+  }, [])
+
+  const handleCloseFooter = useCallback(() => {
+    setShowFooter(false)
+  }, [])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#242629]">
@@ -71,7 +80,7 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen ${isPreload ? 'is-preload' : ''}`}>
-      <Header config={blogIndex?.config} />
+      <Header config={blogIndex?.config} onAboutClick={handleAboutClick} />
       
       <main className="photo-grid pb-20">
         {blogIndex?.posts.map((post, index) => (
@@ -115,7 +124,7 @@ export default function Home() {
         />
       )}
 
-      <Footer config={blogIndex?.config} />
+      <Footer config={blogIndex?.config} isVisible={showFooter} onClose={handleCloseFooter} />
       
       <EditButton />
     </div>

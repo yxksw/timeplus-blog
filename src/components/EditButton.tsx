@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Settings, PenLine, FolderOpen, User } from 'lucide-react'
+import { Settings, PenLine, FolderOpen, User, Github } from 'lucide-react'
 
 export default function EditButton() {
   const [showMenu, setShowMenu] = useState(false)
@@ -42,11 +42,11 @@ export default function EditButton() {
               网站配置
             </Link>
             <Link
-              href="/admin/login"
+              href="/admin/github"
               className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
             >
-              <User size={18} />
-              登录
+              <Github size={18} />
+              GitHub 同步
             </Link>
           </div>
         )}

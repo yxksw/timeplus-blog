@@ -3,7 +3,7 @@
 import { SiteConfig, BlogIndex } from '@/types/blog'
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
-import { Folder, PenLine, Settings, Menu, X, User, ChevronDown } from 'lucide-react'
+import { Folder, Menu, X, User, ChevronDown, Maximize2, Minimize2 } from 'lucide-react'
 
 interface HeaderProps {
   config?: SiteConfig
@@ -14,6 +14,7 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
   const [showCategories, setShowCategories] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [blogIndex, setBlogIndex] = useState<BlogIndex | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const categoryRef = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
@@ -40,8 +41,25 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
     }
   }, [showCategories])
 
+  // 监听全屏状态变化
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  }, [])
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
+  }
+
   return (
-    <header className="site-header fixed bottom-0 left-0 w-full h-20 bg-[rgba(18,18,18,0.8)] backdrop-blur-xl z-[10002] flex items-center px-4 md:px-6 transition-transform duration-1000">
+    <header className="site-header fixed bottom-0 left-0 w-full h-20 bg-[rgba(18,18,18,0.9)] backdrop-blur-xl z-[10002] flex items-center px-4 md:px-6 transition-transform duration-1000">
       <Link href="/" className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink-0">
         {config?.logo && (
           <img 
@@ -72,7 +90,7 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
               onClick={() => setShowCategories(!showCategories)}
             >
               <Folder size={16} className="lg:w-[18px] lg:h-[18px]" />
-              <span className="hidden lg:inline">分类</span>
+              <span>分类</span>
               <ChevronDown size={14} className={`transition-transform ${showCategories ? 'rotate-180' : ''}`} />
             </button>
             
@@ -95,24 +113,15 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
             )}
           </li>
           
+          {/* Fullscreen Button */}
           <li>
-            <Link 
-              href="/write" 
+            <button 
+              onClick={toggleFullscreen}
               className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base"
+              title={isFullscreen ? '退出全屏' : '全屏'}
             >
-              <PenLine size={16} className="lg:w-[18px] lg:h-[18px]" />
-              <span className="hidden lg:inline">写文章</span>
-            </Link>
-          </li>
-          
-          <li>
-            <Link 
-              href="/admin" 
-              className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base"
-            >
-              <Settings size={16} className="lg:w-[18px] lg:h-[18px]" />
-              <span className="hidden lg:inline">管理</span>
-            </Link>
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
           </li>
           
           <li>
@@ -121,7 +130,7 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
               className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base"
             >
               <User size={16} className="lg:w-[18px] lg:h-[18px]" />
-              <span className="hidden lg:inline">关于</span>
+              <span>关于</span>
             </button>
           </li>
         </ul>
@@ -160,26 +169,20 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
                 )}
               </li>
               
+              {/* Mobile Fullscreen */}
               <li>
-                <Link 
-                  href="/write" 
-                  className="block px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-3"
-                  onClick={() => setShowMobileMenu(false)}
+                <button 
+                  onClick={() => {
+                    toggleFullscreen()
+                    setShowMobileMenu(false)
+                  }}
+                  className="w-full px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-3 text-left"
                 >
-                  <PenLine size={20} />
-                  写文章
-                </Link>
+                  {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                  {isFullscreen ? '退出全屏' : '全屏'}
+                </button>
               </li>
-              <li>
-                <Link 
-                  href="/admin" 
-                  className="block px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-3"
-                  onClick={() => setShowMobileMenu(false)}
-                >
-                  <Settings size={20} />
-                  管理
-                </Link>
-              </li>
+              
               <li>
                 <button 
                   onClick={() => {

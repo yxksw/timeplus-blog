@@ -4,23 +4,29 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BlogPost } from '@/types/blog'
 import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
-import { useGitHubConfigStore, getGitHubConfig } from '@/lib/github-config'
 import { createPostMarkdown } from '@/lib/blog'
 import AuthGuard from '@/components/AuthGuard'
 import { slugify } from '@/lib/utils'
 import { Github, Loader2, Check, ExternalLink } from 'lucide-react'
 
+interface GitHubEnvConfig {
+  enabled: boolean
+  owner: string
+  repo: string
+  branch: string
+  appId: string
+}
+
 function WriteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editSlug = searchParams.get('edit')
-  const { isAuthenticated } = useAdminStore()
-  const { isConfigured } = useGitHubConfigStore()
   const [loading, setLoading] = useState(false)
   const [loadingPost, setLoadingPost] = useState(!!editSlug)
   const [syncToGitHub, setSyncToGitHub] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; url?: string } | null>(null)
+  const [gitHubConfig, setGitHubConfig] = useState<GitHubEnvConfig | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -51,7 +57,23 @@ function WriteContent() {
     if (editSlug) {
       loadPost(editSlug)
     }
+    loadGitHubConfig()
   }, [editSlug])
+
+  const loadGitHubConfig = async () => {
+    try {
+      const res = await fetch('/api/github')
+      if (res.ok) {
+        const data = await res.json()
+        if (data.hasEnvConfig) {
+          setGitHubConfig(data.config)
+          setSyncToGitHub(true)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load GitHub config:', error)
+    }
+  }
 
   const loadPost = async (slug: string) => {
     try {
@@ -76,9 +98,6 @@ function WriteContent() {
   }
 
   const syncToGitHubRepo = async (postData: Partial<BlogPost>, markdown: string) => {
-    const gitHubConfig = getGitHubConfig()
-    if (!gitHubConfig || !gitHubConfig.enabled) return
-
     setSyncing(true)
     try {
       const token = getAuthToken()
@@ -90,7 +109,6 @@ function WriteContent() {
         },
         body: JSON.stringify({
           action: 'sync',
-          config: gitHubConfig,
           path: `content/${postData.slug}.md`,
           content: markdown,
           message: `${editSlug ? 'Update' : 'Create'} post: ${postData.title}`,
@@ -99,8 +117,10 @@ function WriteContent() {
 
       const data = await res.json()
       setSyncResult({ success: data.success, message: data.message, url: data.url })
+      return data.success
     } catch (error) {
       setSyncResult({ success: false, message: 'GitHub 同步失败' })
+      return false
     } finally {
       setSyncing(false)
     }
@@ -141,12 +161,13 @@ function WriteContent() {
       })
 
       if (res.ok) {
-        if (syncToGitHub) {
+        let gitHubSuccess = true
+        if (syncToGitHub && gitHubConfig) {
           const markdown = createPostMarkdown(postData)
-          await syncToGitHubRepo(postData, markdown)
+          gitHubSuccess = await syncToGitHubRepo(postData, markdown)
         }
         
-        if (!syncToGitHub || syncResult?.success !== false) {
+        if (gitHubSuccess) {
           alert(editSlug ? '文章更新成功！' : '文章发布成功！')
           router.push('/admin')
         }
@@ -297,14 +318,16 @@ function WriteContent() {
             </div>
           )}
 
-          {isConfigured && (
+          {gitHubConfig && (
             <div className="bg-[#1d1e22] rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Github size={20} className="text-[var(--heo-theme)]" />
                   <div>
                     <div className="font-medium">同步到 GitHub</div>
-                    <div className="text-xs text-[#a0a0a1]">发布文章时同步到 GitHub 仓库</div>
+                    <div className="text-xs text-[#a0a0a1]">
+                      {gitHubConfig.owner}/{gitHubConfig.repo} ({gitHubConfig.branch})
+                    </div>
                   </div>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">

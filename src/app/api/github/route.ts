@@ -1,8 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth-server'
-import { GitHubSyncConfig, SyncResult } from '@/types/github'
+import { GitHubSyncConfig } from '@/types/github'
 
 const GITHUB_API = 'https://api.github.com'
+
+function getEnvConfig(): GitHubSyncConfig | null {
+  const owner = process.env.GITHUB_OWNER
+  const repo = process.env.GITHUB_REPO
+  const branch = process.env.GITHUB_BRANCH || 'main'
+  const appId = process.env.GITHUB_APP_ID
+  const privateKey = process.env.GITHUB_PRIVATE_KEY
+  
+  if (!owner || !repo || !appId || !privateKey) {
+    return null
+  }
+  
+  return {
+    enabled: true,
+    owner,
+    repo,
+    branch,
+    appId,
+    privateKey: privateKey.replace(/\\n/g, '\n'),
+  }
+}
 
 function checkAuth(request: NextRequest): boolean {
   const authHeader = request.headers.get('authorization')
@@ -81,14 +102,38 @@ async function getInstallationToken(jwt: string, owner: string): Promise<string>
   return tokenData.token
 }
 
+export async function GET(request: NextRequest) {
+  const envConfig = getEnvConfig()
+  return NextResponse.json({
+    hasEnvConfig: !!envConfig,
+    config: envConfig ? {
+      enabled: envConfig.enabled,
+      owner: envConfig.owner,
+      repo: envConfig.repo,
+      branch: envConfig.branch,
+      appId: envConfig.appId,
+    } : null,
+  })
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (!checkAuth(request)) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
     
+    const envConfig = getEnvConfig()
     const body = await request.json()
-    const { action, config, path, content, message } = body
+    const { action, config: clientConfig, path, content, message } = body
+    
+    const config = envConfig || clientConfig
+    
+    if (!config) {
+      return NextResponse.json({ 
+        success: false, 
+        message: '未配置 GitHub 信息，请设置环境变量或在页面配置' 
+      }, { status: 400 })
+    }
     
     if (action === 'test') {
       return await testConnection(config)

@@ -3,7 +3,7 @@
 import { BlogPost } from '@/types/blog'
 import { formatDate } from '@/lib/utils'
 import { useEffect, useCallback, useState } from 'react'
-import { Camera, MapPin, Clock, X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react'
+import { Camera, MapPin, Clock, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PhotoOverlayProps {
   post: BlogPost
@@ -24,9 +24,6 @@ export default function PhotoOverlay({
   onNext,
   onImageSelect,
 }: PhotoOverlayProps) {
-  const [scale, setScale] = useState(1)
-  const [isZoomed, setIsZoomed] = useState(false)
-
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
@@ -53,29 +50,16 @@ export default function PhotoOverlay({
 
   const currentImage = images[imageIndex] || post.firstImage
 
-  const handleImageClick = () => {
-    if (isZoomed) {
-      setScale(1)
-      setIsZoomed(false)
-    } else {
-      setScale(2)
-      setIsZoomed(true)
-    }
-  }
-
   return (
     <div 
       className="fixed inset-0 z-[1000]"
       style={{
         background: 'rgba(0, 0, 0, 0.95)',
       }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
-      }}
     >
-      {/* Close Button */}
+      {/* Close Button - Desktop Only */}
       <button 
-        className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+        className="hidden md:flex absolute top-4 right-4 z-50 w-10 h-10 items-center justify-center rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
         onClick={onClose}
         aria-label="关闭"
       >
@@ -96,19 +80,11 @@ export default function PhotoOverlay({
         )}
         
         {/* Image Container */}
-        <div 
-          className="relative max-w-5xl max-h-[80vh]"
-          onClick={handleImageClick}
-          style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
-        >
+        <div className="relative max-w-5xl max-h-[80vh]">
           <img 
             src={currentImage} 
             alt={post.title}
             className="max-w-full max-h-[80vh] object-contain rounded-lg"
-            style={{ 
-              transform: `scale(${scale})`,
-              transition: 'transform 0.3s ease'
-            }}
           />
           
           {/* Caption Overlay - Bottom Left */}
@@ -176,90 +152,77 @@ export default function PhotoOverlay({
         )}
       </div>
       
-      {/* Mobile Layout */}
-      <div className="md:hidden flex flex-col h-full pt-12">
-        {/* Image Area - Centered with padding */}
-        <div 
-          className="flex-shrink-0 flex items-center justify-center px-6 py-4"
-          onClick={handleImageClick}
-          style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
+      {/* Mobile Layout - Full Screen Scrollable */}
+      <div className="md:hidden h-full overflow-y-auto">
+        {/* Close Button */}
+        <button 
+          className="fixed top-4 left-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 text-white/80 hover:text-white transition-colors"
+          onClick={onClose}
+          aria-label="关闭"
         >
+          <X size={22} />
+        </button>
+        
+        {/* Image */}
+        <div className="w-full min-h-[50vh] flex items-center justify-center p-4 pt-16">
           <img 
             src={currentImage} 
             alt={post.title}
-            className="max-w-full max-h-[35vh] object-contain rounded-lg"
-            style={{ 
-              transform: `scale(${scale})`,
-              transition: 'transform 0.3s ease'
-            }}
+            className="w-full max-w-lg object-contain rounded-lg"
           />
-          
-          {/* Mobile Swipe Areas */}
-          {images.length > 1 && (
-            <>
-              <div 
-                className="absolute left-0 top-12 bottom-0 w-1/6"
-                onClick={(e) => { e.stopPropagation(); onPrev(); }}
-              />
-              <div 
-                className="absolute right-0 top-12 bottom-0 w-1/6"
-                onClick={(e) => { e.stopPropagation(); onNext(); }}
-              />
-            </>
-          )}
         </div>
         
         {/* Info Panel */}
-        <div className="flex-1 px-6 py-4 overflow-y-auto">
-          <h2 className="text-white text-lg font-bold mb-2">{post.title}</h2>
+        <div className="px-5 pb-8">
+          <h2 className="text-white text-xl font-bold mb-2">{post.title}</h2>
           
           {post.excerpt && (
-            <p className="text-white/70 text-sm mb-4">{post.excerpt}</p>
+            <p className="text-white/70 text-base mb-4">{post.excerpt}</p>
           )}
           
           <div className="space-y-2 mb-4">
             {post.device && (
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <Camera size={16} className="text-white/60" />
+              <div className="flex items-center gap-2 text-white/80 text-base">
+                <Camera size={18} className="text-white/50" />
                 <span>{post.device}</span>
               </div>
             )}
             {post.location && (
-              <div className="flex items-center gap-2 text-white/80 text-sm">
-                <MapPin size={16} className="text-white/60" />
+              <div className="flex items-center gap-2 text-white/80 text-base">
+                <MapPin size={18} className="text-white/50" />
                 <span>{post.location}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-white/80 text-sm">
-              <Clock size={16} className="text-white/60" />
+            <div className="flex items-center gap-2 text-white/80 text-base">
+              <Clock size={18} className="text-white/50" />
               <span>{formatDate(post.date)}</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <span className="text-white/50 text-sm">
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-white/70 text-base">
               {post.category}
             </span>
           </div>
+          
+          {/* Image Indicators */}
+          {images.length > 1 && (
+            <div className="flex justify-center gap-2">
+              {images.map((_, index) => (
+                <button
+                  key={index}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === imageIndex 
+                      ? 'bg-white' 
+                      : 'bg-white/40'
+                  }`}
+                  onClick={(e) => { e.stopPropagation(); onImageSelect(index); }}
+                  aria-label={`图片 ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
-        
-        {/* Image Indicators - Fixed at bottom */}
-        {images.length > 1 && (
-          <div className="py-4 flex justify-center gap-2">
-            {images.map((_, index) => (
-              <button
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === imageIndex 
-                    ? 'bg-white' 
-                    : 'bg-white/30'
-                }`}
-                onClick={(e) => { e.stopPropagation(); onImageSelect(index); }}
-                aria-label={`图片 ${index + 1}`}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )

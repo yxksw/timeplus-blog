@@ -67,7 +67,7 @@ export default function PhotoOverlay({
     <div 
       className="fixed inset-0 z-[1000]"
       style={{
-        background: 'rgba(0, 0, 0, 0.9)',
+        background: 'rgba(0, 0, 0, 0.95)',
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
@@ -177,35 +177,17 @@ export default function PhotoOverlay({
       </div>
       
       {/* Mobile Layout */}
-      <div className="md:hidden flex flex-col h-full">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3">
-          <button 
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white/80 hover:text-white transition-colors"
-            onClick={onClose}
-            aria-label="关闭"
-          >
-            <X size={22} />
-          </button>
-          
-          <button
-            className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
-            onClick={handleImageClick}
-          >
-            {isZoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
-          </button>
-        </div>
-        
-        {/* Image Area */}
+      <div className="md:hidden flex flex-col h-full pt-12">
+        {/* Image Area - Centered with padding */}
         <div 
-          className="flex-1 flex items-center justify-center px-4 relative"
+          className="flex-shrink-0 flex items-center justify-center px-6 py-4"
           onClick={handleImageClick}
           style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
         >
           <img 
             src={currentImage} 
             alt={post.title}
-            className="max-w-full max-h-[45vh] object-contain rounded-lg"
+            className="max-w-full max-h-[35vh] object-contain rounded-lg"
             style={{ 
               transform: `scale(${scale})`,
               transition: 'transform 0.3s ease'
@@ -216,11 +198,11 @@ export default function PhotoOverlay({
           {images.length > 1 && (
             <>
               <div 
-                className="absolute left-0 top-0 bottom-0 w-1/5"
+                className="absolute left-0 top-12 bottom-0 w-1/6"
                 onClick={(e) => { e.stopPropagation(); onPrev(); }}
               />
               <div 
-                className="absolute right-0 top-0 bottom-0 w-1/5"
+                className="absolute right-0 top-12 bottom-0 w-1/6"
                 onClick={(e) => { e.stopPropagation(); onNext(); }}
               />
             </>
@@ -228,49 +210,49 @@ export default function PhotoOverlay({
         </div>
         
         {/* Info Panel */}
-        <div className="px-5 pb-6 pt-2">
-          <h2 className="text-white text-lg font-bold mb-1">{post.title}</h2>
+        <div className="flex-1 px-6 py-4 overflow-y-auto">
+          <h2 className="text-white text-lg font-bold mb-2">{post.title}</h2>
           
           {post.excerpt && (
-            <p className="text-white/60 text-sm mb-3">{post.excerpt}</p>
+            <p className="text-white/70 text-sm mb-4">{post.excerpt}</p>
           )}
           
-          <div className="space-y-1.5 mb-3">
+          <div className="space-y-2 mb-4">
             {post.device && (
-              <div className="flex items-center gap-2 text-white/70 text-sm">
-                <Camera size={14} className="text-white/50" />
+              <div className="flex items-center gap-2 text-white/80 text-sm">
+                <Camera size={16} className="text-white/60" />
                 <span>{post.device}</span>
               </div>
             )}
             {post.location && (
-              <div className="flex items-center gap-2 text-white/70 text-sm">
-                <MapPin size={14} className="text-white/50" />
+              <div className="flex items-center gap-2 text-white/80 text-sm">
+                <MapPin size={16} className="text-white/60" />
                 <span>{post.location}</span>
               </div>
             )}
-            <div className="flex items-center gap-2 text-white/70 text-sm">
-              <Clock size={14} className="text-white/50" />
+            <div className="flex items-center gap-2 text-white/80 text-sm">
+              <Clock size={16} className="text-white/60" />
               <span>{formatDate(post.date)}</span>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-white/60 text-sm">
+            <span className="text-white/50 text-sm">
               {post.category}
             </span>
           </div>
         </div>
         
-        {/* Image Indicators */}
+        {/* Image Indicators - Fixed at bottom */}
         {images.length > 1 && (
-          <div className="pb-4 flex justify-center gap-2">
+          <div className="py-4 flex justify-center gap-2">
             {images.map((_, index) => (
               <button
                 key={index}
                 className={`w-2 h-2 rounded-full transition-all ${
                   index === imageIndex 
                     ? 'bg-white' 
-                    : 'bg-white/40'
+                    : 'bg-white/30'
                 }`}
                 onClick={(e) => { e.stopPropagation(); onImageSelect(index); }}
                 aria-label={`图片 ${index + 1}`}

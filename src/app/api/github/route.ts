@@ -64,25 +64,29 @@ function getJWT(appId: string, privateKey: string): string {
   return `${data}.${signature}`
 }
 
-async function getInstallationToken(jwt: string, owner: string): Promise<string> {
+async function getInstallationToken(jwt: string, owner: string): Promise<{ token: string; error?: string }> {
   const installationsRes = await fetch(`${GITHUB_API}/app/installations`, {
     headers: {
       Authorization: `Bearer ${jwt}`,
       Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
     },
   })
   
   if (!installationsRes.ok) {
     const errorText = await installationsRes.text()
     console.error('Installations error:', errorText)
-    throw new Error('Failed to get installations')
+    return { token: '', error: `获取安装列表失败 (${installationsRes.status}): ${errorText}` }
   }
   
   const installations = await installationsRes.json()
+  console.log('Installations:', installations.map((i: any) => ({ id: i.id, account: i.account.login })))
+  
   const installation = installations.find((inst: any) => inst.account.login === owner)
   
   if (!installation) {
-    throw new Error('Installation not found for this owner')
+    const accounts = installations.map((i: any) => i.account.login).join(', ')
+    return { token: '', error: `未找到 ${owner} 的安装。已安装的账户: ${accounts || '无'}` }
   }
   
   const tokenRes = await fetch(
@@ -92,16 +96,18 @@ async function getInstallationToken(jwt: string, owner: string): Promise<string>
       headers: {
         Authorization: `Bearer ${jwt}`,
         Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
       },
     }
   )
   
   if (!tokenRes.ok) {
-    throw new Error('Failed to get installation token')
+    const errorText = await tokenRes.text()
+    return { token: '', error: `获取访问令牌失败: ${errorText}` }
   }
   
   const tokenData = await tokenRes.json()
-  return tokenData.token
+  return { token: tokenData.token }
 }
 
 export async function GET(request: NextRequest) {
@@ -158,21 +164,47 @@ export async function POST(request: NextRequest) {
 
 async function testConnection(config: GitHubSyncConfig): Promise<NextResponse> {
   try {
-    const jwt = getJWT(config.appId, config.privateKey)
-    const token = await getInstallationToken(jwt, config.owner)
+    console.log('Testing connection for:', config.owner, config.repo)
+    console.log('App ID:', config.appId)
+    
+    let jwt: string
+    try {
+      jwt = getJWT(config.appId, config.privateKey)
+      console.log('JWT generated successfully')
+    } catch (e) {
+      console.error('JWT generation error:', e)
+      return NextResponse.json({
+        success: false,
+        message: `JWT 生成失败: ${e instanceof Error ? e.message : '未知错误'}`,
+      })
+    }
+    
+    const tokenResult = await getInstallationToken(jwt, config.owner)
+    
+    if (!tokenResult.token) {
+      return NextResponse.json({
+        success: false,
+        message: tokenResult.error || '获取访问令牌失败',
+      })
+    }
     
     const res = await fetch(
       `${GITHUB_API}/repos/${config.owner}/${config.repo}`,
       {
         headers: {
-          Authorization: `token ${token}`,
+          Authorization: `token ${tokenResult.token}`,
           Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
         },
       }
     )
     
     if (!res.ok) {
-      throw new Error('无法访问仓库')
+      const errorText = await res.text()
+      return NextResponse.json({
+        success: false,
+        message: `无法访问仓库: ${res.status} ${errorText}`,
+      })
     }
     
     const repo = await res.json()
@@ -188,6 +220,7 @@ async function testConnection(config: GitHubSyncConfig): Promise<NextResponse> {
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '连接失败'
+    console.error('Test connection error:', error)
     return NextResponse.json({
       success: false,
       message: errorMessage,
@@ -203,7 +236,16 @@ async function syncToGitHub(
 ): Promise<NextResponse> {
   try {
     const jwt = getJWT(config.appId, config.privateKey)
-    const token = await getInstallationToken(jwt, config.owner)
+    const tokenResult = await getInstallationToken(jwt, config.owner)
+    
+    if (!tokenResult.token) {
+      return NextResponse.json({
+        success: false,
+        message: tokenResult.error || '获取访问令牌失败',
+      })
+    }
+    
+    const token = tokenResult.token
     
     let sha: string | null = null
     const getRes = await fetch(
@@ -212,6 +254,7 @@ async function syncToGitHub(
         headers: {
           Authorization: `token ${token}`,
           Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
         },
       }
     )
@@ -238,6 +281,7 @@ async function syncToGitHub(
         headers: {
           Authorization: `token ${token}`,
           Accept: 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(body),

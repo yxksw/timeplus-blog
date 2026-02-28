@@ -66,13 +66,11 @@ export default function Header({ config, onAboutClick, isHidden }: HeaderProps) 
       }`}
     >
       <Link href="/" className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink-0">
-        {config?.logo && (
-          <img 
-            src={config.logo} 
-            alt={config?.name || 'Logo'} 
-            className="w-8 h-8 rounded-full flex-shrink-0"
-          />
-        )}
+        <img 
+          src={config?.logo || '/favicon.ico'} 
+          alt={config?.name || 'Logo'} 
+          className="w-8 h-8 rounded-full flex-shrink-0"
+        />
         <div className="min-w-0">
           <h1 className="text-sm md:text-base text-[#a0a0a1] m-0 truncate">
             <strong className="text-white font-bold">{config?.name || 'TimePlus'}</strong>

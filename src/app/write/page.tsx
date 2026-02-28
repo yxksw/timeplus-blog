@@ -7,7 +7,7 @@ import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
 import { createPostMarkdown } from '@/lib/blog'
 import AuthGuard from '@/components/AuthGuard'
 import { slugify } from '@/lib/utils'
-import { Github, Loader2, Check, ExternalLink, ArrowLeft, PenLine } from 'lucide-react'
+import { Github, Loader2, Check, ExternalLink, ArrowLeft, ImagePlus } from 'lucide-react'
 
 interface GitHubEnvConfig {
   enabled: boolean
@@ -202,43 +202,53 @@ function WriteContent() {
   return (
     <div className="min-h-screen bg-[#242629] text-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-3 mb-6 md:mb-8">
-          <PenLine size={24} className="text-[var(--heo-theme)]" />
-          <h1 className="text-2xl md:text-3xl font-bold">{editSlug ? '编辑文章' : '写文章'}</h1>
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6 md:mb-8">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            title="返回"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h1 className="text-xl md:text-3xl font-bold">{editSlug ? '编辑文章' : '写文章'}</h1>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+          {/* Title */}
           <div>
             <label className="block text-sm mb-2">标题 *</label>
             <input
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
               placeholder="输入文章标题"
               required
             />
           </div>
 
+          {/* Slug */}
           <div>
             <label className="block text-sm mb-2">Slug（URL路径）</label>
             <input
               type="text"
               value={formData.slug}
               onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-              className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
               placeholder="article-slug"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Category & Tags */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm mb-2">分类</label>
               <input
                 type="text"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
                 placeholder="default"
               />
             </div>
@@ -248,20 +258,21 @@ function WriteContent() {
                 type="text"
                 value={formData.tags}
                 onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
                 placeholder="tag1, tag2"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Device & Location */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm mb-2">设备</label>
               <input
                 type="text"
                 value={formData.device}
                 onChange={(e) => setFormData({ ...formData, device: e.target.value })}
-                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
                 placeholder="iPhone 15 Pro"
               />
             </div>
@@ -271,19 +282,20 @@ function WriteContent() {
                 type="text"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+                className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
                 placeholder="北京"
               />
             </div>
           </div>
 
+          {/* Content */}
           <div>
             <label className="block text-sm mb-2">内容（Markdown格式）*</label>
-            <div className="mb-2">
+            <div className="mb-2 flex flex-wrap gap-2">
               <input
                 type="text"
                 placeholder="输入图片URL，按回车添加"
-                className="px-4 py-2 bg-[#34363b] border border-[#36383c] rounded-lg text-white text-sm w-full sm:w-64"
+                className="flex-1 min-w-[200px] px-3 py-2 bg-[#34363b] border border-[#36383c] rounded-lg text-white text-sm"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault()
@@ -299,65 +311,67 @@ function WriteContent() {
             <textarea
               value={formData.content}
               onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none min-h-[300px] md:min-h-[400px] font-mono text-sm"
+              className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none min-h-[250px] md:min-h-[400px] font-mono text-xs md:text-sm"
               placeholder="使用 Markdown 格式编写内容&#10;&#10;图片语法: ![描述](图片URL)&#10;&#10;多张图片会自动显示为相册"
               required
             />
           </div>
 
+          {/* Image Preview */}
           {images.length > 0 && (
             <div>
               <label className="block text-sm mb-2">图片预览 ({images.length}张)</label>
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                 {images.map((img, index) => (
                   <img
                     key={index}
                     src={img}
                     alt={`Preview ${index + 1}`}
-                    className="w-full h-20 sm:h-24 object-cover rounded-lg"
+                    className="w-full h-20 md:h-24 object-cover rounded-lg"
                   />
                 ))}
               </div>
             </div>
           )}
 
+          {/* GitHub Sync */}
           {gitHubConfig && (
-            <div className="bg-[#1d1e22] rounded-lg p-4">
+            <div className="bg-[#1d1e22] rounded-lg p-3 md:p-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Github size={20} className="text-[var(--heo-theme)]" />
-                  <div>
+                <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <Github size={18} className="text-[var(--heo-theme)] flex-shrink-0" />
+                  <div className="min-w-0">
                     <div className="font-medium text-sm md:text-base">同步到 GitHub</div>
-                    <div className="text-xs text-[#a0a0a1]">
-                      {gitHubConfig.owner}/{gitHubConfig.repo} ({gitHubConfig.branch})
+                    <div className="text-xs text-[#a0a0a1] truncate">
+                      {gitHubConfig.owner}/{gitHubConfig.repo}
                     </div>
                   </div>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                   <input
                     type="checkbox"
                     checked={syncToGitHub}
                     onChange={(e) => setSyncToGitHub(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-[#34363b] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--heo-theme)]"></div>
+                  <div className="w-9 md:w-11 h-5 md:h-6 bg-[#34363b] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 md:after:h-5 md:after:w-5 after:transition-all peer-checked:bg-[var(--heo-theme)]"></div>
                 </label>
               </div>
               
               {syncResult && (
-                <div className={`mt-3 flex items-center gap-2 text-sm ${
+                <div className={`mt-3 flex items-center gap-2 text-xs md:text-sm ${
                   syncResult.success ? 'text-green-400' : 'text-red-400'
                 }`}>
-                  {syncResult.success ? <Check size={16} /> : null}
-                  {syncResult.message}
+                  {syncResult.success ? <Check size={14} /> : null}
+                  <span className="truncate">{syncResult.message}</span>
                   {syncResult.url && (
                     <a 
                       href={syncResult.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-[var(--heo-theme)] hover:underline flex items-center gap-1"
+                      className="text-[var(--heo-theme)] hover:underline flex items-center gap-1 flex-shrink-0"
                     >
-                      查看 <ExternalLink size={14} />
+                      查看 <ExternalLink size={12} />
                     </a>
                   )}
                 </div>
@@ -365,22 +379,22 @@ function WriteContent() {
             </div>
           )}
 
+          {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <button
               type="submit"
               disabled={loading || syncing}
-              className="flex-1 sm:flex-none px-6 md:px-8 py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 sm:flex-none px-6 md:px-8 py-2.5 md:py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2 text-sm md:text-base"
             >
-              {(loading || syncing) ? <Loader2 size={18} className="animate-spin" /> : null}
+              {(loading || syncing) ? <Loader2 size={16} className="animate-spin" /> : null}
               {loading ? '发布中...' : (editSlug ? '更新文章' : '发布文章')}
               {syncing ? '(同步中...)' : ''}
             </button>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 sm:flex-none px-6 md:px-8 py-3 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors text-center"
+              className="px-6 md:px-8 py-2.5 md:py-3 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors text-sm md:text-base"
             >
-              <ArrowLeft size={16} className="inline mr-1 sm:hidden" />
               取消
             </button>
           </div>

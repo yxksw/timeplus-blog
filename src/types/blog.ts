@@ -28,7 +28,6 @@ export interface SiteConfig {
     home?: string
     weibo?: string
     github?: string
-    email?: string
   }
   icp?: string
   police?: string

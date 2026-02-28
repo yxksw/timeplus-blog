@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { BlogPost, BlogIndex } from '@/types/blog'
-import { formatDate } from '@/lib/utils'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import PhotoOverlay from '@/components/PhotoOverlay'
@@ -72,44 +71,39 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div id="wrapper">
-        <div id="main" style={{ justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-          <div style={{ color: '#fff', fontSize: '1.5em' }}>加载中...</div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#242629]">
+        <div className="text-white text-xl">加载中...</div>
       </div>
     )
   }
 
   return (
-    <div id="wrapper" className={isPreload ? 'is-preload' : ''}>
+    <div className={`min-h-screen ${isPreload ? 'is-preload' : ''}`}>
       <Header config={blogIndex?.config} onAboutClick={handleAboutClick} />
       
-      <main id="main">
+      <main className="photo-grid pb-20">
         {blogIndex?.posts.map((post, index) => (
           <article
             key={post.slug}
-            className="thumb"
+            className="photo-item"
+            style={{
+              transitionDelay: `${0.65 + index * 0.15}s`,
+            }}
             onClick={() => handlePhotoClick(post)}
           >
             {post.firstImage && (
               <img
-                className="image"
                 src={post.firstImage}
                 alt={post.title}
                 loading="lazy"
-                style={{
-                  objectFit: 'cover',
-                  width: '100%',
-                  height: '100%',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  cursor: 'pointer'
-                }}
               />
             )}
             <h2>{post.title}</h2>
-            <p>{post.excerpt}</p>
+            <div className="tag-info">
+              <span className="tag-categorys">
+                <span>{post.category}</span>
+              </span>
+            </div>
           </article>
         ))}
       </main>

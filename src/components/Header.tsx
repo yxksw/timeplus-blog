@@ -11,91 +11,128 @@ interface HeaderProps {
 }
 
 export default function Header({ config, onAboutClick }: HeaderProps) {
+  const [showCategories, setShowCategories] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   return (
-    <header id="header">
-      <Link href="/" className="flex items-center">
+    <header className="site-header fixed bottom-0 left-0 w-full h-20 bg-[rgba(18,18,18,0.8)] backdrop-blur-xl z-[10002] flex items-center px-4 md:px-6 transition-transform duration-1000">
+      <Link href="/" className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink-0">
         {config?.logo && (
           <img 
             src={config.logo} 
             alt={config?.name || 'Logo'} 
-            className="site-logo"
+            className="w-8 h-8 rounded-full flex-shrink-0"
           />
         )}
-        <h1>
-          <a href="/">{config?.name || 'TimePlus'}</a>
-        </h1>
-        {config?.description && (
-          <span className="discription hidden md:inline">
-            {config.description}
-          </span>
-        )}
+        <div className="min-w-0">
+          <h1 className="text-sm md:text-base text-[#a0a0a1] m-0 truncate">
+            <strong className="text-white font-bold">{config?.name || 'TimePlus'}</strong>
+          </h1>
+          {config?.description && (
+            <span className="text-xs md:text-sm text-[#a0a0a1] ml-2 hidden lg:inline">
+              {config.description}
+            </span>
+          )}
+        </div>
       </Link>
 
-      <nav>
-        <ul className="hidden md:flex">
-          <li>
-            <Link href="/write">
-              <PenLine size={16} className="inline mr-1" />
-              写文章
-            </Link>
-          </li>
-          
-          <li>
-            <Link href="/admin">
-              <Settings size={16} className="inline mr-1" />
-              管理
-            </Link>
-          </li>
-          
-          <li>
-            <button onClick={onAboutClick}>
-              关于
+      {/* Desktop Navigation */}
+      <nav className="ml-auto hidden md:block">
+        <ul className="flex items-center gap-1 lg:gap-2">
+          <li 
+            className="relative"
+            onMouseEnter={() => setShowCategories(true)}
+            onMouseLeave={() => setShowCategories(false)}
+          >
+            <button className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base">
+              <Folder size={16} className="lg:w-[18px] lg:h-[18px]" />
+              <span className="hidden lg:inline">分类</span>
             </button>
           </li>
-        </ul>
-        
-        <ul className="flex md:hidden">
+          
+          <li>
+            <Link 
+              href="/write" 
+              className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base"
+            >
+              <PenLine size={16} className="lg:w-[18px] lg:h-[18px]" />
+              <span className="hidden lg:inline">写文章</span>
+            </Link>
+          </li>
+          
+          <li>
+            <Link 
+              href="/admin" 
+              className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base"
+            >
+              <Settings size={16} className="lg:w-[18px] lg:h-[18px]" />
+              <span className="hidden lg:inline">管理</span>
+            </Link>
+          </li>
+          
           <li>
             <button 
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-              className="p-2"
+              onClick={onAboutClick}
+              className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors text-sm lg:text-base"
             >
-              {showMobileMenu ? <X size={20} /> : <Menu size={20} />}
+              关于
             </button>
           </li>
         </ul>
       </nav>
-      
+
+      {/* Mobile Menu Button */}
+      <button 
+        className="md:hidden ml-auto p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+        onClick={() => setShowMobileMenu(!showMobileMenu)}
+        aria-label="菜单"
+      >
+        {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
+      </button>
+
+      {/* Mobile Menu */}
       {showMobileMenu && (
-        <div className="fixed inset-0 top-[60px] bg-[rgba(18,18,18,0.95)] z-[10001] md:hidden">
-          <nav className="flex flex-col items-center justify-center h-full gap-4">
-            <Link 
-              href="/write" 
-              className="text-white text-lg py-3 px-6"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              <PenLine size={18} className="inline mr-2" />
-              写文章
-            </Link>
-            <Link 
-              href="/admin" 
-              className="text-white text-lg py-3 px-6"
-              onClick={() => setShowMobileMenu(false)}
-            >
-              <Settings size={18} className="inline mr-2" />
-              管理
-            </Link>
-            <button 
-              className="text-white text-lg py-3 px-6"
-              onClick={() => {
-                setShowMobileMenu(false)
-                onAboutClick?.()
-              }}
-            >
-              关于
-            </button>
+        <div className="md:hidden fixed bottom-20 left-0 right-0 bg-[rgba(18,18,18,0.95)] backdrop-blur-xl z-[10001] border-t border-[#36383c]">
+          <nav className="px-4 py-2">
+            <ul className="flex flex-col gap-1">
+              <li>
+                <button className="w-full px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-3 text-left">
+                  <Folder size={20} />
+                  分类
+                </button>
+              </li>
+              <li>
+                <Link 
+                  href="/write" 
+                  className="block px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-3"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <PenLine size={20} />
+                  写文章
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  href="/admin" 
+                  className="block px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-3"
+                  onClick={() => setShowMobileMenu(false)}
+                >
+                  <Settings size={20} />
+                  管理
+                </Link>
+              </li>
+              <li>
+                <button 
+                  onClick={() => {
+                    onAboutClick?.()
+                    setShowMobileMenu(false)
+                  }}
+                  className="w-full px-4 py-3 rounded-lg text-white hover:bg-white/10 transition-colors text-left"
+                >
+                  关于
+                </button>
+              </li>
+            </ul>
           </nav>
         </div>
       )}

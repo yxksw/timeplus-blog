@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAdminStore } from '@/lib/admin-auth'
+import { Lock, ArrowLeft, Key } from 'lucide-react'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -42,11 +43,17 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-[#242629] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-[#1d1e22] rounded-lg p-8">
-          <h1 className="text-2xl font-bold text-white text-center mb-2">
+        <div className="bg-[#1d1e22] rounded-lg p-6 md:p-8">
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-[var(--heo-theme-op)] flex items-center justify-center">
+              <Lock size={32} className="text-[var(--heo-theme)]" />
+            </div>
+          </div>
+          
+          <h1 className="text-xl md:text-2xl font-bold text-white text-center mb-2">
             管理员登录
           </h1>
-          <p className="text-[#a0a0a1] text-center mb-8">
+          <p className="text-[#a0a0a1] text-center mb-6 md:mb-8 text-sm md:text-base">
             请输入管理员密码
           </p>
 
@@ -55,25 +62,30 @@ export default function AdminLoginPage() {
               <label className="block text-sm text-[#a0a0a1] mb-2">
                 管理员密码
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none"
-                placeholder="输入密码"
-                required
-                autoFocus
-              />
+              <div className="relative">
+                <Key size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a0a0a1]" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none"
+                  placeholder="输入密码"
+                  required
+                  autoFocus
+                />
+              </div>
             </div>
 
             {error && (
-              <div className="text-red-400 text-sm text-center">{error}</div>
+              <div className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-lg">
+                {error}
+              </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              className="w-full py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 font-medium"
             >
               {loading ? '登录中...' : '登录'}
             </button>
@@ -82,13 +94,14 @@ export default function AdminLoginPage() {
           <div className="mt-6 text-center">
             <a
               href="/"
-              className="text-sm text-[var(--heo-theme)] hover:underline"
+              className="text-sm text-[var(--heo-theme)] hover:underline inline-flex items-center gap-1"
             >
+              <ArrowLeft size={14} />
               返回首页
             </a>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-[#36383c]">
+          <div className="mt-6 md:mt-8 pt-6 border-t border-[#36383c]">
             <h3 className="text-sm font-bold text-white mb-3">提示</h3>
             <p className="text-xs text-[#a0a0a1]">
               默认密码: <code className="bg-[#34363b] px-2 py-1 rounded">admin123</code>

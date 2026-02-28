@@ -39,3 +39,5 @@ cloudflare-env.d.ts
 
 # Misc
 *.pem
+
+photo/

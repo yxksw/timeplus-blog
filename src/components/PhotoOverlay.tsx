@@ -88,9 +88,11 @@ export default function PhotoOverlay({
     const diffY = touchY - touchStartY.current
     
     // Determine if this is a horizontal swipe
-    if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+    if (!isHorizontalSwipe.current && Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
       isHorizontalSwipe.current = true
-      e.preventDefault()
+    }
+    
+    if (isHorizontalSwipe.current) {
       setDragOffset(diffX)
     }
   }
@@ -189,7 +191,8 @@ export default function PhotoOverlay({
           <img 
             src={currentImage} 
             alt={post.title}
-            className="max-w-full max-h-[80vh] object-contain rounded-lg"
+            className="max-w-full max-h-[80vh] object-contain rounded-lg select-none"
+            draggable={false}
             style={{ 
               transform: `scale(${scale})`,
               transition: 'transform 0.3s ease'
@@ -275,7 +278,7 @@ export default function PhotoOverlay({
         {/* Image Area with Swipe */}
         <div 
           ref={containerRef}
-          className="w-full min-h-[50vh] flex items-center justify-center p-4 pt-16 relative overflow-hidden"
+          className="w-full min-h-[50vh] flex items-center justify-center p-4 pt-16 relative overflow-hidden touch-pan-y"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -287,7 +290,7 @@ export default function PhotoOverlay({
           {/* Previous Image Preview */}
           {images.length > 1 && imageIndex > 0 && (
             <div 
-              className="absolute left-0 top-0 bottom-0 w-20 opacity-30"
+              className="absolute left-0 top-0 bottom-0 w-20 opacity-30 pointer-events-none"
               style={{ transform: `translateX(${dragOffset - 80}px)` }}
             >
               <img 
@@ -302,17 +305,18 @@ export default function PhotoOverlay({
           <img 
             src={currentImage} 
             alt={post.title}
-            className="w-full max-w-lg object-contain rounded-lg transition-transform duration-200"
+            className="w-full max-w-lg object-contain rounded-lg transition-transform duration-200 select-none"
             style={{ 
               transform: `translateX(${dragOffset}px) scale(${isDragging ? 0.95 : 1})`,
               cursor: isDragging ? 'grabbing' : 'grab'
             }}
+            draggable={false}
           />
           
           {/* Next Image Preview */}
           {images.length > 1 && imageIndex < images.length - 1 && (
             <div 
-              className="absolute right-0 top-0 bottom-0 w-20 opacity-30"
+              className="absolute right-0 top-0 bottom-0 w-20 opacity-30 pointer-events-none"
               style={{ transform: `translateX(${dragOffset + 80}px)` }}
             >
               <img 
@@ -325,7 +329,7 @@ export default function PhotoOverlay({
           
           {/* Swipe Hint */}
           {images.length > 1 && !isDragging && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-xs">
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/40 text-xs pointer-events-none">
               左右滑动切换图片
             </div>
           )}

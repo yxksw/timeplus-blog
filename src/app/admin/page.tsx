@@ -7,7 +7,7 @@ import { BlogPost, BlogIndex } from '@/types/blog'
 import { formatDate } from '@/lib/utils'
 import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
 import AuthGuard from '@/components/AuthGuard'
-import { PenLine, Settings, Github, LogOut, Edit2, Trash2, Image } from 'lucide-react'
+import { PenLine, Settings, Github, LogOut, Edit2, Trash2, Image, Home } from 'lucide-react'
 
 export default function AdminPage() {
   return (
@@ -91,6 +91,14 @@ function AdminContent() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <h1 className="text-2xl md:text-3xl font-bold">文章管理</h1>
           <div className="flex flex-wrap gap-2 md:gap-4 w-full md:w-auto">
+            <Link
+              href="/"
+              className="px-4 md:px-6 py-2 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors flex items-center gap-2"
+              title="回到首页"
+            >
+              <Home size={18} />
+              <span className="hidden sm:inline">首页</span>
+            </Link>
             <Link
               href="/write"
               className="flex-1 md:flex-none px-4 md:px-6 py-2 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 text-sm md:text-base"

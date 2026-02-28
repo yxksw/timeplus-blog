@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth-server'
 import { GitHubSyncConfig } from '@/types/github'
+import crypto from 'crypto'
 
 const GITHUB_API = 'https://api.github.com'
 
@@ -9,10 +10,18 @@ function getEnvConfig(): GitHubSyncConfig | null {
   const repo = process.env.GITHUB_REPO
   const branch = process.env.GITHUB_BRANCH || 'main'
   const appId = process.env.GITHUB_APP_ID
-  const privateKey = process.env.GITHUB_PRIVATE_KEY
+  let privateKey = process.env.GITHUB_PRIVATE_KEY
   
   if (!owner || !repo || !appId || !privateKey) {
     return null
+  }
+  
+  privateKey = privateKey
+    .replace(/\\n/g, '\n')
+    .replace(/"/g, '')
+  
+  if (!privateKey.includes('-----BEGIN')) {
+    privateKey = `-----BEGIN RSA PRIVATE KEY-----\n${privateKey}\n-----END RSA PRIVATE KEY-----`
   }
   
   return {
@@ -21,7 +30,7 @@ function getEnvConfig(): GitHubSyncConfig | null {
     repo,
     branch,
     appId,
-    privateKey: privateKey.replace(/\\n/g, '\n'),
+    privateKey,
   }
 }
 
@@ -32,18 +41,7 @@ function checkAuth(request: NextRequest): boolean {
   return verifyToken(token)
 }
 
-function pemToArrayBuffer(pem: string): Buffer {
-  const b64 = pem
-    .replace(/-----BEGIN RSA PRIVATE KEY-----/g, '')
-    .replace(/-----END RSA PRIVATE KEY-----/g, '')
-    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
-    .replace(/-----END PRIVATE KEY-----/g, '')
-    .replace(/\s/g, '')
-  return Buffer.from(b64, 'base64')
-}
-
-async function getJWT(appId: string, privateKey: string): Promise<string> {
-  const crypto = await import('crypto')
+function getJWT(appId: string, privateKey: string): string {
   const now = Math.floor(Date.now() / 1000)
   
   const payload = {
@@ -59,7 +57,9 @@ async function getJWT(appId: string, privateKey: string): Promise<string> {
   
   const sign = crypto.createSign('RSA-SHA256')
   sign.update(data)
-  const signature = sign.sign(pemToArrayBuffer(privateKey), 'base64url')
+  sign.end()
+  
+  const signature = sign.sign(privateKey, 'base64url')
   
   return `${data}.${signature}`
 }
@@ -73,6 +73,8 @@ async function getInstallationToken(jwt: string, owner: string): Promise<string>
   })
   
   if (!installationsRes.ok) {
+    const errorText = await installationsRes.text()
+    console.error('Installations error:', errorText)
     throw new Error('Failed to get installations')
   }
   
@@ -156,7 +158,7 @@ export async function POST(request: NextRequest) {
 
 async function testConnection(config: GitHubSyncConfig): Promise<NextResponse> {
   try {
-    const jwt = await getJWT(config.appId, config.privateKey)
+    const jwt = getJWT(config.appId, config.privateKey)
     const token = await getInstallationToken(jwt, config.owner)
     
     const res = await fetch(
@@ -200,7 +202,7 @@ async function syncToGitHub(
   message: string
 ): Promise<NextResponse> {
   try {
-    const jwt = await getJWT(config.appId, config.privateKey)
+    const jwt = getJWT(config.appId, config.privateKey)
     const token = await getInstallationToken(jwt, config.owner)
     
     let sha: string | null = null

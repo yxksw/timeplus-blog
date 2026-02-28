@@ -4,16 +4,23 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { BlogPost } from '@/types/blog'
 import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
+import { useGitHubConfigStore, getGitHubConfig } from '@/lib/github-config'
+import { createPostMarkdown } from '@/lib/blog'
 import AuthGuard from '@/components/AuthGuard'
 import { slugify } from '@/lib/utils'
+import { Github, Loader2, Check, ExternalLink } from 'lucide-react'
 
 function WriteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const editSlug = searchParams.get('edit')
   const { isAuthenticated } = useAdminStore()
+  const { isConfigured } = useGitHubConfigStore()
   const [loading, setLoading] = useState(false)
   const [loadingPost, setLoadingPost] = useState(!!editSlug)
+  const [syncToGitHub, setSyncToGitHub] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; url?: string } | null>(null)
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -68,6 +75,37 @@ function WriteContent() {
     }
   }
 
+  const syncToGitHubRepo = async (postData: Partial<BlogPost>, markdown: string) => {
+    const gitHubConfig = getGitHubConfig()
+    if (!gitHubConfig || !gitHubConfig.enabled) return
+
+    setSyncing(true)
+    try {
+      const token = getAuthToken()
+      const res = await fetch('/api/github', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          action: 'sync',
+          config: gitHubConfig,
+          path: `content/${postData.slug}.md`,
+          content: markdown,
+          message: `${editSlug ? 'Update' : 'Create'} post: ${postData.title}`,
+        }),
+      })
+
+      const data = await res.json()
+      setSyncResult({ success: data.success, message: data.message, url: data.url })
+    } catch (error) {
+      setSyncResult({ success: false, message: 'GitHub 同步失败' })
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -77,6 +115,7 @@ function WriteContent() {
     }
 
     setLoading(true)
+    setSyncResult(null)
     
     try {
       const postData: Partial<BlogPost> = {
@@ -102,8 +141,15 @@ function WriteContent() {
       })
 
       if (res.ok) {
-        alert(editSlug ? '文章更新成功！' : '文章发布成功！')
-        router.push('/admin')
+        if (syncToGitHub) {
+          const markdown = createPostMarkdown(postData)
+          await syncToGitHubRepo(postData, markdown)
+        }
+        
+        if (!syncToGitHub || syncResult?.success !== false) {
+          alert(editSlug ? '文章更新成功！' : '文章发布成功！')
+          router.push('/admin')
+        }
       } else {
         const error = await res.json()
         alert(`发布失败: ${error.error}`)
@@ -251,13 +297,57 @@ function WriteContent() {
             </div>
           )}
 
+          {isConfigured && (
+            <div className="bg-[#1d1e22] rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Github size={20} className="text-[var(--heo-theme)]" />
+                  <div>
+                    <div className="font-medium">同步到 GitHub</div>
+                    <div className="text-xs text-[#a0a0a1]">发布文章时同步到 GitHub 仓库</div>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={syncToGitHub}
+                    onChange={(e) => setSyncToGitHub(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-[#34363b] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--heo-theme)]"></div>
+                </label>
+              </div>
+              
+              {syncResult && (
+                <div className={`mt-3 flex items-center gap-2 text-sm ${
+                  syncResult.success ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {syncResult.success ? <Check size={16} /> : null}
+                  {syncResult.message}
+                  {syncResult.url && (
+                    <a 
+                      href={syncResult.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[var(--heo-theme)] hover:underline flex items-center gap-1"
+                    >
+                      查看 <ExternalLink size={14} />
+                    </a>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-4">
             <button
               type="submit"
-              disabled={loading}
-              className="px-8 py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+              disabled={loading || syncing}
+              className="px-8 py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
             >
+              {(loading || syncing) ? <Loader2 size={18} className="animate-spin" /> : null}
               {loading ? '发布中...' : (editSlug ? '更新文章' : '发布文章')}
+              {syncing ? '(同步中...)' : ''}
             </button>
             <button
               type="button"

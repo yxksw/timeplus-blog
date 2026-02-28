@@ -1,15 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { BlogPost } from '@/types/blog'
-import { useAuthStore } from '@/lib/auth-store'
+import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
+import AuthGuard from '@/components/AuthGuard'
 import { slugify } from '@/lib/utils'
 
-export default function WritePage() {
+function WriteContent() {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const searchParams = useSearchParams()
+  const editSlug = searchParams.get('edit')
+  const { isAuthenticated } = useAdminStore()
   const [loading, setLoading] = useState(false)
+  const [loadingPost, setLoadingPost] = useState(!!editSlug)
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -36,6 +40,34 @@ export default function WritePage() {
     setImages(foundImages)
   }, [formData.content])
 
+  useEffect(() => {
+    if (editSlug) {
+      loadPost(editSlug)
+    }
+  }, [editSlug])
+
+  const loadPost = async (slug: string) => {
+    try {
+      const res = await fetch(`/api/blog/${slug}`)
+      if (res.ok) {
+        const post: BlogPost = await res.json()
+        setFormData({
+          title: post.title,
+          slug: post.slug,
+          content: post.content,
+          category: post.category,
+          tags: post.tags.join(', '),
+          device: post.device || '',
+          location: post.location || '',
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load post:', error)
+    } finally {
+      setLoadingPost(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -59,15 +91,19 @@ export default function WritePage() {
         published: true,
       }
 
+      const token = getAuthToken()
       const res = await fetch(`/api/blog/${formData.slug}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(postData),
       })
 
       if (res.ok) {
-        alert('文章发布成功！')
-        router.push('/')
+        alert(editSlug ? '文章更新成功！' : '文章发布成功！')
+        router.push('/admin')
       } else {
         const error = await res.json()
         alert(`发布失败: ${error.error}`)
@@ -88,10 +124,18 @@ export default function WritePage() {
     }))
   }
 
+  if (loadingPost) {
+    return (
+      <div className="min-h-screen bg-[#242629] flex items-center justify-center">
+        <div className="text-white">加载文章中...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#242629] text-white p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">写文章</h1>
+        <h1 className="text-3xl font-bold mb-8">{editSlug ? '编辑文章' : '写文章'}</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
@@ -213,7 +257,7 @@ export default function WritePage() {
               disabled={loading}
               className="px-8 py-3 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
             >
-              {loading ? '发布中...' : '发布文章'}
+              {loading ? '发布中...' : (editSlug ? '更新文章' : '发布文章')}
             </button>
             <button
               type="button"
@@ -226,5 +270,13 @@ export default function WritePage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function WritePage() {
+  return (
+    <AuthGuard>
+      <WriteContent />
+    </AuthGuard>
   )
 }

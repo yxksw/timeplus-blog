@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { parseBlogPost, createPostMarkdown } from '@/lib/blog'
-import { githubClient } from '@/lib/github-client'
+import { verifyToken } from '@/lib/auth-server'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content')
 
@@ -12,6 +12,13 @@ async function ensureContentDir() {
   } catch {
     await fs.mkdir(CONTENT_DIR, { recursive: true })
   }
+}
+
+function checkAuth(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+  if (!token) return false
+  return verifyToken(token)
 }
 
 export async function GET(
@@ -40,13 +47,13 @@ export async function PUT(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    if (!checkAuth(request)) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
+    
     const { slug } = await params
     const body = await request.json()
-    const { privateKey, ...postData } = body
-    
-    if (!privateKey) {
-      return NextResponse.json({ error: 'Private key required' }, { status: 401 })
-    }
+    const { ...postData } = body
     
     await ensureContentDir()
     
@@ -54,19 +61,6 @@ export async function PUT(
     const filePath = path.join(CONTENT_DIR, `${slug}.md`)
     
     await fs.writeFile(filePath, markdown, 'utf-8')
-    
-    if (process.env.GITHUB_ENABLED === 'true') {
-      try {
-        githubClient.setPrivateKey(privateKey)
-        await githubClient.createFile(
-          `content/${slug}.md`,
-          markdown,
-          `Update post: ${postData.title}`
-        )
-      } catch (githubError) {
-        console.error('GitHub sync failed:', githubError)
-      }
-    }
     
     return NextResponse.json({ success: true, slug })
   } catch (error) {
@@ -80,13 +74,11 @@ export async function DELETE(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const { slug } = await params
-    const body = await request.json()
-    const { privateKey } = body
-    
-    if (!privateKey) {
-      return NextResponse.json({ error: 'Private key required' }, { status: 401 })
+    if (!checkAuth(request)) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
+    
+    const { slug } = await params
     
     const filePath = path.join(CONTENT_DIR, `${slug}.md`)
     

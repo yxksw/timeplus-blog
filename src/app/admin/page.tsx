@@ -2,10 +2,23 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { BlogPost, BlogIndex } from '@/types/blog'
 import { formatDate } from '@/lib/utils'
+import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
+import AuthGuard from '@/components/AuthGuard'
 
 export default function AdminPage() {
+  return (
+    <AuthGuard>
+      <AdminContent />
+    </AuthGuard>
+  )
+}
+
+function AdminContent() {
+  const router = useRouter()
+  const { logout } = useAdminStore()
   const [blogIndex, setBlogIndex] = useState<BlogIndex | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -33,9 +46,13 @@ export default function AdminPage() {
     
     setDeleting(slug)
     try {
+      const token = getAuthToken()
       const res = await fetch(`/api/blog/${slug}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({}),
       })
       
@@ -51,6 +68,11 @@ export default function AdminPage() {
     } finally {
       setDeleting(null)
     }
+  }
+
+  const handleLogout = () => {
+    logout()
+    router.push('/admin/login')
   }
 
   if (loading) {
@@ -79,6 +101,12 @@ export default function AdminPage() {
             >
               网站配置
             </Link>
+            <button
+              onClick={handleLogout}
+              className="px-6 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+            >
+              登出
+            </button>
           </div>
         </div>
 

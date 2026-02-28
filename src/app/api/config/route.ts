@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { SiteConfig } from '@/types/blog'
+import { verifyToken } from '@/lib/auth-server'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content')
 const CONFIG_FILE = path.join(CONTENT_DIR, 'config.json')
@@ -26,6 +27,13 @@ async function ensureContentDir() {
   }
 }
 
+function checkAuth(request: NextRequest): boolean {
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+  if (!token) return false
+  return verifyToken(token)
+}
+
 export async function GET() {
   try {
     await ensureContentDir()
@@ -39,8 +47,12 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
+    if (!checkAuth(request)) {
+      return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
+    
     const body = await request.json()
-    const { privateKey, ...config } = body as SiteConfig & { privateKey?: string }
+    const { ...config } = body as SiteConfig
     
     await ensureContentDir()
     await fs.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2), 'utf-8')

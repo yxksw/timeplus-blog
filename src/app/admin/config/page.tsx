@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react'
 import { SiteConfig } from '@/types/blog'
 import { useRouter } from 'next/navigation'
+import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
+import AuthGuard from '@/components/AuthGuard'
 
-export default function ConfigPage() {
+function ConfigContent() {
   const router = useRouter()
+  const { logout } = useAdminStore()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [config, setConfig] = useState<SiteConfig>({
@@ -37,9 +40,13 @@ export default function ConfigPage() {
   const handleSave = async () => {
     setSaving(true)
     try {
+      const token = getAuthToken()
       const res = await fetch('/api/config', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify(config),
       })
 
@@ -57,6 +64,11 @@ export default function ConfigPage() {
     }
   }
 
+  const handleLogout = () => {
+    logout()
+    router.push('/admin/login')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#242629] flex items-center justify-center">
@@ -70,12 +82,20 @@ export default function ConfigPage() {
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">网站配置</h1>
-          <button
-            onClick={() => router.push('/admin')}
-            className="px-6 py-2 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors"
-          >
-            返回
-          </button>
+          <div className="flex gap-4">
+            <button
+              onClick={() => router.push('/admin')}
+              className="px-6 py-2 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors"
+            >
+              返回
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-6 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
+            >
+              登出
+            </button>
+          </div>
         </div>
 
         <div className="space-y-6">
@@ -229,5 +249,13 @@ export default function ConfigPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConfigPage() {
+  return (
+    <AuthGuard>
+      <ConfigContent />
+    </AuthGuard>
   )
 }

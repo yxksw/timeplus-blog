@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
-import { parseBlogPost, createPostMarkdown } from '@/lib/blog'
+import { parseBlogPost } from '@/lib/blog'
 import { verifyToken } from '@/lib/auth-server'
 
 const CONTENT_DIR = path.join(process.cwd(), 'content')
@@ -31,6 +31,23 @@ function checkAuth(request: NextRequest): { valid: boolean; error?: string } {
   }
   
   return { valid: true }
+}
+
+function createPostMarkdown(post: any): string {
+  const frontmatter = [
+    '---',
+    `title: "${post.title || ''}"`,
+    `date: ${post.date || new Date().toISOString()}`,
+    `category: ${post.category || 'default'}`,
+    post.tags && post.tags.length > 0 ? `tags: [${post.tags.map((t: string) => `"${t}"`).join(', ')}]` : '',
+    post.device ? `device: "${post.device}"` : '',
+    post.location ? `location: "${post.location}"` : '',
+    `published: ${post.published !== false}`,
+    '---',
+    '',
+  ].filter(Boolean).join('\n')
+  
+  return frontmatter + (post.content || '')
 }
 
 export async function GET(
@@ -77,31 +94,35 @@ export async function PUT(
       return NextResponse.json({ error: '请求体解析失败' }, { status: 400 })
     }
     
-    const { ...postData } = body
-    
-    if (!postData.title) {
+    if (!body.title) {
       return NextResponse.json({ error: '标题不能为空' }, { status: 400 })
     }
     
-    if (!postData.content) {
+    if (!body.content) {
       return NextResponse.json({ error: '内容不能为空' }, { status: 400 })
     }
     
     await ensureContentDir()
     
-    const markdown = createPostMarkdown(postData)
+    const markdown = createPostMarkdown(body)
     const filePath = path.join(CONTENT_DIR, `${slug}.md`)
     
     console.log('Writing file to:', filePath)
+    console.log('Content dir:', CONTENT_DIR)
+    console.log('CWD:', process.cwd())
+    
     await fs.writeFile(filePath, markdown, 'utf-8')
     
     return NextResponse.json({ success: true, slug, path: filePath })
   } catch (error) {
     console.error('Error in PUT /api/blog/[slug]:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : ''
+    console.error('Stack:', errorStack)
     return NextResponse.json({ 
       error: 'Failed to update post', 
-      details: errorMessage 
+      details: errorMessage,
+      stack: errorStack
     }, { status: 500 })
   }
 }

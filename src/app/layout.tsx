@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: SITE_CONFIG.name,
   description: SITE_CONFIG.description,
   authors: [{ name: SITE_CONFIG.author }],
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({

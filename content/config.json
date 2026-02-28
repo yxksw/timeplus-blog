@@ -1,0 +1,11 @@
+{
+  "name": "TimePlus Blog",
+  "description": "一款简约的相册博客",
+  "author": "TimePlus",
+  "logo": "/logo.png",
+  "social": {
+    "home": "",
+    "weibo": "",
+    "github": ""
+  }
+}

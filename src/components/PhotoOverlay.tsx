@@ -2,7 +2,8 @@
 
 import { BlogPost } from '@/types/blog'
 import { formatDate } from '@/lib/utils'
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
+import { Camera, MapPin, Clock, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface PhotoOverlayProps {
   post: BlogPost
@@ -23,6 +24,9 @@ export default function PhotoOverlay({
   onNext,
   onImageSelect,
 }: PhotoOverlayProps) {
+  const [scale, setScale] = useState(1)
+  const [isZoomed, setIsZoomed] = useState(false)
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     switch (e.key) {
       case 'Escape':
@@ -49,6 +53,16 @@ export default function PhotoOverlay({
 
   const currentImage = images[imageIndex] || post.firstImage
 
+  const handleImageClick = () => {
+    if (isZoomed) {
+      setScale(1)
+      setIsZoomed(false)
+    } else {
+      setScale(2)
+      setIsZoomed(true)
+    }
+  }
+
   return (
     <div 
       className="photo-overlay"
@@ -56,79 +70,91 @@ export default function PhotoOverlay({
         if (e.target === e.currentTarget) onClose()
       }}
     >
-      <div className="photo-overlay-content relative max-w-5xl">
+      <div className="photo-overlay-content relative max-w-5xl w-full mx-4">
+        {/* Close Button */}
         <button 
           className="photo-overlay-close"
           onClick={onClose}
           aria-label="关闭"
-        />
+        >
+          <X size={24} />
+        </button>
         
+        {/* Navigation Arrows */}
         {images.length > 1 && (
           <>
             <button
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-16 h-32 opacity-0 hover:opacity-100 transition-opacity z-20"
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-colors z-20"
               onClick={(e) => { e.stopPropagation(); onPrev(); }}
-              style={{
-                background: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 512 512\'%3E%3Cpath fill=\'%23fff\' d=\'M256 504C119 504 8 393 8 256S119 8 256 8s248 111 248 248-111 248-248 248zM142.1 273l135.5 135.5c9.4 9.4 24.6 9.4 33.9 0l17-17c9.4-9.4 9.4-24.6 0-33.9L226.9 256l101.6-101.6c9.4-9.4 9.4-24.6 0-33.9l-17-17c-9.4-9.4-24.6-9.4-33.9 0L142.1 239c-9.4 9.4-9.4 24.6 0 34z\'/%3E%3C/svg%3E") center/5em no-repeat',
-              }}
               aria-label="上一张"
-            />
+            >
+              <ChevronLeft size={24} className="text-white" />
+            </button>
             <button
-              className="absolute right-0 top-1/2 -translate-y-1/2 w-16 h-32 opacity-0 hover:opacity-100 transition-opacity z-20"
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-colors z-20"
               onClick={(e) => { e.stopPropagation(); onNext(); }}
-              style={{
-                background: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 512 512\'%3E%3Cpath fill=\'%23fff\' d=\'M256 8c137 0 248 111 248 248S393 504 256 504 8 393 8 256 119 8 256 8zm113.9 231L234.4 103.5c-9.4-9.4-24.6-9.4-33.9 0l-17 17c-9.4 9.4-9.4 24.6 0 33.9L285.1 256 183.5 357.6c-9.4 9.4-9.4 24.6 0 33.9l17 17c9.4 9.4 24.6 9.4 33.9 0L369.9 273c9.4-9.4 9.4-24.6 0-34z\'/%3E%3C/svg%3E") center/5em no-repeat',
-              }}
               aria-label="下一张"
-            />
+            >
+              <ChevronRight size={24} className="text-white" />
+            </button>
           </>
         )}
         
-        <img 
-          src={currentImage} 
-          alt={post.title}
-          className="max-h-[80vh] object-contain"
-        />
+        {/* Image Container with Zoom */}
+        <div 
+          className="overflow-hidden cursor-zoom-in"
+          onClick={handleImageClick}
+          style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
+        >
+          <img 
+            src={currentImage} 
+            alt={post.title}
+            className="w-full h-auto max-h-[70vh] object-contain transition-transform duration-300"
+            style={{ transform: `scale(${scale})` }}
+          />
+        </div>
         
+        {/* Caption */}
         <div className="photo-caption">
-          <h2>{post.title}</h2>
+          <h2 className="text-lg md:text-xl">{post.title}</h2>
           
-          {post.content && (
-            <p className="text-sm opacity-80">{post.excerpt}</p>
+          {post.excerpt && (
+            <p className="text-sm opacity-80 mt-1">{post.excerpt}</p>
           )}
           
           <div className="tag-info-bottom mt-2">
             {post.device && (
-              <span>
-                <i className="iconfont icon-camera-lens-line"></i>
+              <span className="flex items-center gap-1">
+                <Camera size={14} />
                 {post.device}
               </span>
             )}
             {post.location && (
-              <span>
-                <i className="iconfont icon-map-pin-2-line"></i>
+              <span className="flex items-center gap-1">
+                <MapPin size={14} />
                 {post.location}
               </span>
             )}
-            <span>
-              <i className="iconfont icon-time-line"></i>
+            <span className="flex items-center gap-1">
+              <Clock size={14} />
               {formatDate(post.date)}
             </span>
           </div>
           
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-4 mt-3 flex-wrap">
             <span className="tag-categorys">
               <span>{post.category}</span>
             </span>
             {post.tags.length > 0 && (
-              <span className="tag-list flex gap-2">
+              <span className="flex gap-2 flex-wrap">
                 {post.tags.map((tag) => (
-                  <span key={tag} className="text-white/80">#{tag}</span>
+                  <span key={tag} className="text-white/80 text-sm">#{tag}</span>
                 ))}
               </span>
             )}
           </div>
           
+          {/* Image Indicators */}
           {images.length > 1 && (
             <div className="flex gap-2 justify-center mt-4">
               {images.map((_, index) => (

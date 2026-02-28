@@ -262,39 +262,47 @@ ul {
   position: relative;
   box-shadow: 0 1em 3em 0.5em rgba(0, 0, 0, 0.25);
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .photo-overlay-content img {
-  max-width: 100%;
-  max-height: 80vh;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
   object-fit: contain;
 }
 
 .photo-overlay-close {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 4em;
-  height: 4em;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23fff' d='M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17l-22.6 22.6c-4.7 4.7-12.3 4.7-17 0L256 279.3l-82.1 82.1c-4.7 4.7-12.3 4.7-17 0l-22.6-22.6c-4.7-4.7-4.7-12.3 0-17l82.1-82.1-82.1-82.1c-4.7-4.7-4.7-12.3 0-17l22.6-22.6c4.7-4.7 12.3-4.7 17 0L256 232.7l82.1-82.1c4.7-4.7 12.3-4.7 17 0l22.6 22.6c4.7 4.7 4.7 12.3 0 17L293.9 256l82.1 82.1z'/%3E%3C/svg%3E");
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 2em;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
   cursor: pointer;
-  opacity: 0.5;
+  opacity: 0.8;
   transition: opacity 0.2s ease-in-out;
   z-index: 10;
+  border: none;
+  color: white;
 }
 
 .photo-overlay-close:hover {
   opacity: 1;
+  background: rgba(0, 0, 0, 0.7);
 }
 
 @media screen and (max-width: 736px) {
   .photo-overlay-close {
-    width: 3em;
-    height: 3em;
-    background-size: 1.5em;
+    width: 36px;
+    height: 36px;
+    top: 8px;
+    right: 8px;
   }
 }
 

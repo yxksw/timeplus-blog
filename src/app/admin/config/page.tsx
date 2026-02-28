@@ -5,7 +5,19 @@ import { SiteConfig } from '@/types/blog'
 import { useRouter } from 'next/navigation'
 import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
 import AuthGuard from '@/components/AuthGuard'
-import { ArrowLeft, LogOut, Save, Home, User, FileText, Link2, Shield } from 'lucide-react'
+import { ArrowLeft, LogOut, Save, Home, Shield } from 'lucide-react'
+import { Icon } from '@iconify/react'
+
+// 社交链接配置
+const socialLinkFields = [
+  { key: 'home', label: '主页', icon: 'mdi:home', placeholder: 'https://your-site.com' },
+  { key: 'weibo', label: '微博', icon: 'mdi:sina-weibo', placeholder: 'https://weibo.com/yourname' },
+  { key: 'github', label: 'GitHub', icon: 'mdi:github', placeholder: 'https://github.com/yourname' },
+  { key: 'qq', label: 'QQ', icon: 'mdi:qqchat', placeholder: '123456789' },
+  { key: 'telegram', label: 'Telegram', icon: 'mdi:telegram', placeholder: 'https://t.me/yourname' },
+  { key: 'bilibili', label: 'Bilibili', icon: 'mdi:television-play', placeholder: 'https://space.bilibili.com/yourid' },
+  { key: 'email', label: 'Email', icon: 'mdi:email', placeholder: 'your@email.com' },
+] as const
 
 function ConfigContent() {
   const router = useRouter()
@@ -173,52 +185,29 @@ function ConfigContent() {
           {/* Social Links */}
           <section className="bg-[#1d1e22] rounded-lg p-4 md:p-6">
             <h2 className="text-lg md:text-xl font-bold mb-4 flex items-center gap-2">
-              <Link2 size={20} className="text-[var(--heo-theme)]" />
+              <Icon icon="mdi:link-variant" width={20} height={20} className="text-[var(--heo-theme)]" />
               社交链接
             </h2>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm mb-2">主页</label>
-                <input
-                  type="url"
-                  value={config.social?.home || ''}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    social: { ...config.social, home: e.target.value }
-                  })}
-                  className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
-                  placeholder="https://your-site.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-2">微博</label>
-                <input
-                  type="url"
-                  value={config.social?.weibo || ''}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    social: { ...config.social, weibo: e.target.value }
-                  })}
-                  className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
-                  placeholder="https://weibo.com/yourname"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm mb-2">GitHub</label>
-                <input
-                  type="url"
-                  value={config.social?.github || ''}
-                  onChange={(e) => setConfig({
-                    ...config,
-                    social: { ...config.social, github: e.target.value }
-                  })}
-                  className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
-                  placeholder="https://github.com/yourname"
-                />
-              </div>
+              {socialLinkFields.map(({ key, label, icon, placeholder }) => (
+                <div key={key}>
+                  <label className="block text-sm mb-2 flex items-center gap-2">
+                    <Icon icon={icon} width={16} height={16} className="text-white/60" />
+                    {label}
+                  </label>
+                  <input
+                    type={key === 'email' ? 'email' : 'text'}
+                    value={config.social?.[key as keyof typeof config.social] || ''}
+                    onChange={(e) => setConfig({
+                      ...config,
+                      social: { ...config.social, [key]: e.target.value }
+                    })}
+                    className="w-full px-3 md:px-4 py-2.5 md:py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none text-sm md:text-base"
+                    placeholder={placeholder}
+                  />
+                </div>
+              ))}
             </div>
           </section>
 

@@ -13,6 +13,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@iconify/react": "^6.0.2",
     "@opennextjs/cloudflare": "^1.14.4",
     "@types/jsrsasign": "^10.5.15",
     "clsx": "^2.1.1",

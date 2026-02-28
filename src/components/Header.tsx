@@ -2,7 +2,7 @@
 
 import { SiteConfig, BlogIndex } from '@/types/blog'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Folder, PenLine, Settings, Menu, X, User, ChevronDown } from 'lucide-react'
 
 interface HeaderProps {
@@ -14,6 +14,7 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
   const [showCategories, setShowCategories] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [blogIndex, setBlogIndex] = useState<BlogIndex | null>(null)
+  const categoryRef = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
     fetch('/api/blog')
@@ -21,6 +22,23 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
       .then(data => setBlogIndex(data))
       .catch(() => {})
   }, [])
+
+  // 点击外部关闭分类菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
+        setShowCategories(false)
+      }
+    }
+
+    if (showCategories) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showCategories])
 
   return (
     <header className="site-header fixed bottom-0 left-0 w-full h-20 bg-[rgba(18,18,18,0.8)] backdrop-blur-xl z-[10002] flex items-center px-4 md:px-6 transition-transform duration-1000">
@@ -48,11 +66,9 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
       <nav className="ml-auto hidden md:block">
         <ul className="flex items-center gap-1 lg:gap-2">
           {/* Categories Dropdown */}
-          <li className="relative">
+          <li className="relative" ref={categoryRef}>
             <button 
               className="px-3 lg:px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-1 lg:gap-2 text-sm lg:text-base"
-              onMouseEnter={() => setShowCategories(true)}
-              onMouseLeave={() => setShowCategories(false)}
               onClick={() => setShowCategories(!showCategories)}
             >
               <Folder size={16} className="lg:w-[18px] lg:h-[18px]" />
@@ -64,8 +80,6 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
             {showCategories && blogIndex && blogIndex.categories.length > 0 && (
               <div 
                 className="absolute bottom-full left-0 mb-2 bg-[rgba(18,18,18,0.95)] backdrop-blur-xl rounded-lg border border-[#36383c] py-2 min-w-[150px]"
-                onMouseEnter={() => setShowCategories(true)}
-                onMouseLeave={() => setShowCategories(false)}
               >
                 {blogIndex.categories.map((cat) => (
                   <Link

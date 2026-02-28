@@ -70,54 +70,53 @@ export default function PhotoOverlay({
         background: 'rgba(0, 0, 0, 0.95)',
       }}
     >
-      {/* Header - Close Button */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <button 
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white/80 hover:text-white transition-colors"
-          onClick={onClose}
-          aria-label="关闭"
-        >
-          <X size={22} />
-        </button>
-        
-        {/* Desktop Navigation Arrows */}
-        {images.length > 1 && (
-          <div className="hidden md:flex items-center gap-2">
-            <button
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              onClick={(e) => { e.stopPropagation(); onPrev(); }}
-              aria-label="上一张"
-            >
-              <ChevronLeft size={24} className="text-white" />
-            </button>
-            <button
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-              onClick={(e) => { e.stopPropagation(); onNext(); }}
-              aria-label="下一张"
-            >
-              <ChevronRight size={24} className="text-white" />
-            </button>
-          </div>
-        )}
-        
-        <button
-          className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white transition-colors"
-          onClick={handleImageClick}
-        >
-          {isZoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
-        </button>
-      </div>
+      {/* Close Button - Top Left */}
+      <button 
+        className="absolute top-4 left-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+        onClick={onClose}
+        aria-label="关闭"
+      >
+        <X size={22} />
+      </button>
+      
+      {/* Zoom Button - Top Right */}
+      <button
+        className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+        onClick={handleImageClick}
+      >
+        {isZoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
+      </button>
+      
+      {/* Desktop Navigation Arrows */}
+      {images.length > 1 && (
+        <>
+          <button
+            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center transition-colors z-50"
+            onClick={(e) => { e.stopPropagation(); onPrev(); }}
+            aria-label="上一张"
+          >
+            <ChevronLeft size={28} className="text-white" />
+          </button>
+          <button
+            className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center transition-colors z-50"
+            onClick={(e) => { e.stopPropagation(); onNext(); }}
+            aria-label="下一张"
+          >
+            <ChevronRight size={28} className="text-white" />
+          </button>
+        </>
+      )}
       
       {/* Image Area */}
       <div 
-        className="flex-1 flex items-center justify-center px-4 relative"
+        className="flex-1 flex items-center justify-center px-4 pt-16 pb-4 relative"
         onClick={handleImageClick}
         style={{ cursor: isZoomed ? 'zoom-out' : 'zoom-in' }}
       >
         <img 
           src={currentImage} 
           alt={post.title}
-          className="max-w-full max-h-[50vh] md:max-h-[60vh] object-contain rounded-lg"
+          className="max-w-full max-h-[45vh] md:max-h-[60vh] object-contain rounded-lg"
           style={{ 
             transform: `scale(${scale})`,
             transition: 'transform 0.3s ease'
@@ -128,11 +127,11 @@ export default function PhotoOverlay({
         {images.length > 1 && (
           <>
             <div 
-              className="absolute left-0 top-0 bottom-0 w-1/5 md:hidden"
+              className="absolute left-0 top-16 bottom-0 w-1/5 md:hidden"
               onClick={(e) => { e.stopPropagation(); onPrev(); }}
             />
             <div 
-              className="absolute right-0 top-0 bottom-0 w-1/5 md:hidden"
+              className="absolute right-0 top-16 bottom-0 w-1/5 md:hidden"
               onClick={(e) => { e.stopPropagation(); onNext(); }}
             />
           </>
@@ -140,34 +139,34 @@ export default function PhotoOverlay({
       </div>
       
       {/* Info Panel */}
-      <div className="px-5 pb-8 pt-4">
-        <h2 className="text-white text-xl font-bold mb-1">{post.title}</h2>
+      <div className="px-5 pb-6">
+        <h2 className="text-white text-lg md:text-xl font-bold mb-1">{post.title}</h2>
         
         {post.excerpt && (
-          <p className="text-white/60 text-sm mb-4">{post.excerpt}</p>
+          <p className="text-white/60 text-sm mb-3">{post.excerpt}</p>
         )}
         
-        <div className="space-y-2 mb-4">
+        <div className="space-y-1.5 mb-3">
           {post.device && (
             <div className="flex items-center gap-2 text-white/70 text-sm">
-              <Camera size={16} className="text-white/50" />
+              <Camera size={14} className="text-white/50" />
               <span>{post.device}</span>
             </div>
           )}
           {post.location && (
             <div className="flex items-center gap-2 text-white/70 text-sm">
-              <MapPin size={16} className="text-white/50" />
+              <MapPin size={14} className="text-white/50" />
               <span>{post.location}</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-white/70 text-sm">
-            <Clock size={16} className="text-white/50" />
+            <Clock size={14} className="text-white/50" />
             <span>{formatDate(post.date)}</span>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 bg-white/10 rounded-full text-sm text-white/80">
+          <span className="text-white/60 text-sm">
             {post.category}
           </span>
         </div>
@@ -175,7 +174,7 @@ export default function PhotoOverlay({
       
       {/* Image Indicators */}
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="pb-4 flex justify-center gap-2">
           {images.map((_, index) => (
             <button
               key={index}

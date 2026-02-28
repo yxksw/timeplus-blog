@@ -21,6 +21,19 @@ export default function Home() {
     return () => clearTimeout(timer)
   }, [])
 
+  // 当灯箱打开时隐藏底部导航栏
+  useEffect(() => {
+    if (selectedPost) {
+      document.body.classList.add('modal-active')
+    } else {
+      document.body.classList.remove('modal-active')
+    }
+    
+    return () => {
+      document.body.classList.remove('modal-active')
+    }
+  }, [selectedPost])
+
   const loadBlogIndex = async () => {
     try {
       const res = await fetch('/api/blog')
@@ -78,8 +91,8 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen ${isPreload ? 'is-preload' : ''}`}>
-      <Header config={blogIndex?.config} onAboutClick={handleAboutClick} />
+    <div className={`min-h-screen ${isPreload ? 'is-preload' : ''} ${selectedPost ? 'modal-active' : ''}`}>
+      <Header config={blogIndex?.config} onAboutClick={handleAboutClick} isHidden={!!selectedPost} />
       
       <main className="photo-grid pb-20">
         {blogIndex?.posts.map((post, index) => (

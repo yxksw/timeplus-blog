@@ -8,9 +8,10 @@ import { Folder, Menu, X, User, ChevronDown, Maximize2, Minimize2 } from 'lucide
 interface HeaderProps {
   config?: SiteConfig
   onAboutClick?: () => void
+  isHidden?: boolean
 }
 
-export default function Header({ config, onAboutClick }: HeaderProps) {
+export default function Header({ config, onAboutClick, isHidden }: HeaderProps) {
   const [showCategories, setShowCategories] = useState(false)
   const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [blogIndex, setBlogIndex] = useState<BlogIndex | null>(null)
@@ -59,7 +60,11 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
   }
 
   return (
-    <header className="site-header fixed bottom-0 left-0 w-full h-20 bg-[rgba(18,18,18,0.9)] backdrop-blur-xl z-[10002] flex items-center px-4 md:px-6 transition-transform duration-1000">
+    <header 
+      className={`site-header fixed bottom-0 left-0 w-full h-20 bg-[rgba(18,18,18,0.9)] backdrop-blur-xl z-[10002] flex items-center px-4 md:px-6 transition-transform duration-300 ${
+        isHidden ? 'translate-y-full' : 'translate-y-0'
+      }`}
+    >
       <Link href="/" className="flex items-center gap-2 md:gap-4 min-w-0 flex-shrink-0">
         {config?.logo && (
           <img 

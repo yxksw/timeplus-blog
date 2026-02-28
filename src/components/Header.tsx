@@ -3,6 +3,7 @@
 import { SiteConfig } from '@/types/blog'
 import Link from 'next/link'
 import { useState } from 'react'
+import { Folder, PenLine, Settings } from 'lucide-react'
 
 interface HeaderProps {
   config?: SiteConfig
@@ -40,7 +41,7 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
             onMouseLeave={() => setShowCategories(false)}
           >
             <button className="px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2">
-              <i className="iconfont icon-folder"></i>
+              <Folder size={18} />
               分类
             </button>
           </li>
@@ -50,7 +51,7 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
               href="/write" 
               className="px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2"
             >
-              <i className="iconfont icon-edit"></i>
+              <PenLine size={18} />
               写文章
             </Link>
           </li>
@@ -58,8 +59,9 @@ export default function Header({ config, onAboutClick }: HeaderProps) {
           <li>
             <Link 
               href="/admin" 
-              className="px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors"
+              className="px-4 py-2 rounded-lg text-white hover:bg-white/10 transition-colors flex items-center gap-2"
             >
+              <Settings size={18} />
               管理
             </Link>
           </li>

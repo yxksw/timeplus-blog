@@ -1,6 +1,7 @@
 'use client'
 
 import { SiteConfig } from '@/types/blog'
+import { Home, Github } from 'lucide-react'
 
 interface FooterProps {
   config?: SiteConfig
@@ -18,15 +19,11 @@ export default function Footer({ config, isVisible, onClose }: FooterProps) {
     >
       <button 
         onClick={onClose}
-        className="absolute top-4 right-4 w-12 h-12 opacity-50 hover:opacity-100 transition-opacity"
+        className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors text-white"
         aria-label="关闭"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%23fff' d='M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17l-22.6 22.6c-4.7 4.7-12.3 4.7-17 0L256 279.3l-82.1 82.1c-4.7 4.7-12.3 4.7-17 0l-22.6-22.6c-4.7-4.7-4.7-12.3 0-17l82.1-82.1-82.1-82.1c-4.7-4.7-4.7-12.3 0-17l22.6-22.6c4.7-4.7 12.3-4.7 17 0L256 232.7l82.1-82.1c4.7-4.7 12.3-4.7 17 0l22.6 22.6c4.7 4.7 4.7 12.3 0 17L293.9 256l82.1 82.1z'/%3E%3C/svg%3E")`,
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          backgroundSize: '2em',
-        }}
-      />
+      >
+        ✕
+      </button>
       
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row gap-8">
@@ -48,19 +45,7 @@ export default function Footer({ config, isVisible, onClose }: FooterProps) {
                     rel="noopener noreferrer"
                     className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#1d1e22] hover:bg-[var(--heo-theme)] hover:text-white transition-colors"
                   >
-                    <i className="iconfont icon-shouye text-xl"></i>
-                  </a>
-                </li>
-              )}
-              {config?.social?.weibo && (
-                <li>
-                  <a 
-                    href={config.social.weibo} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#1d1e22] hover:bg-[var(--heo-theme)] hover:text-white transition-colors"
-                  >
-                    <i className="iconfont icon-weibo text-xl"></i>
+                    <Home size={20} />
                   </a>
                 </li>
               )}
@@ -72,7 +57,7 @@ export default function Footer({ config, isVisible, onClose }: FooterProps) {
                     rel="noopener noreferrer"
                     className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#1d1e22] hover:bg-[var(--heo-theme)] hover:text-white transition-colors"
                   >
-                    <i className="iconfont icon-github text-xl"></i>
+                    <Github size={20} />
                   </a>
                 </li>
               )}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Settings, PenLine, FolderOpen, User } from 'lucide-react'
 
 export default function EditButton() {
   const [showMenu, setShowMenu] = useState(false)
@@ -14,37 +15,37 @@ export default function EditButton() {
           className="w-12 h-12 rounded-full bg-[var(--heo-theme)] text-white flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
           aria-label="菜单"
         >
-          <i className="iconfont icon-setting text-xl"></i>
+          <Settings size={22} />
         </button>
         
         {showMenu && (
           <div className="absolute bottom-14 right-0 bg-[var(--heo-card-bg)] rounded-lg shadow-xl overflow-hidden min-w-[150px]">
             <Link
               href="/write"
-              className="block px-4 py-3 text-white hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
             >
-              <i className="iconfont icon-edit mr-2"></i>
+              <PenLine size={18} />
               写文章
             </Link>
             <Link
               href="/admin"
-              className="block px-4 py-3 text-white hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
             >
-              <i className="iconfont icon-folder mr-2"></i>
+              <FolderOpen size={18} />
               文章管理
             </Link>
             <Link
               href="/admin/config"
-              className="block px-4 py-3 text-white hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
             >
-              <i className="iconfont icon-setting mr-2"></i>
+              <Settings size={18} />
               网站配置
             </Link>
             <Link
               href="/admin/login"
-              className="block px-4 py-3 text-white hover:bg-white/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-3 text-white hover:bg-white/10 transition-colors"
             >
-              <i className="iconfont icon-user mr-2"></i>
+              <User size={18} />
               登录
             </Link>
           </div>

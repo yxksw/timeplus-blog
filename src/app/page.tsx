@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { BlogPost, BlogIndex } from '@/types/blog'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -14,6 +15,8 @@ export default function Home() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isPreload, setIsPreload] = useState(true)
   const [showFooter, setShowFooter] = useState(false)
+  const searchParams = useSearchParams()
+  const categoryFilter = searchParams.get('category')
 
   useEffect(() => {
     loadBlogIndex()
@@ -82,6 +85,13 @@ export default function Home() {
     setShowFooter(false)
   }, [])
 
+  // 根据分类筛选文章
+  const filteredPosts = useMemo(() => {
+    if (!blogIndex?.posts) return []
+    if (!categoryFilter) return blogIndex.posts
+    return blogIndex.posts.filter(post => post.category === categoryFilter)
+  }, [blogIndex?.posts, categoryFilter])
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#242629]">
@@ -95,7 +105,19 @@ export default function Home() {
       <Header config={blogIndex?.config} onAboutClick={handleAboutClick} isHidden={!!selectedPost} />
       
       <main className="photo-grid pb-20">
-        {blogIndex?.posts.map((post, index) => (
+        {categoryFilter && (
+          <div className="w-full px-4 md:px-8 py-4 flex items-center gap-2 text-[#a0a0a1]">
+            <span>分类：</span>
+            <span className="text-white font-medium">{categoryFilter}</span>
+            <a 
+              href="/" 
+              className="ml-4 text-sm hover:text-white underline"
+            >
+              清除筛选
+            </a>
+          </div>
+        )}
+        {filteredPosts.map((post, index) => (
           <article
             key={post.slug}
             className="photo-item"
@@ -119,6 +141,14 @@ export default function Home() {
             </div>
           </article>
         ))}
+        {filteredPosts.length === 0 && categoryFilter && (
+          <div className="w-full flex flex-col items-center justify-center py-20 text-[#a0a0a1]">
+            <p className="text-xl mb-4">该分类下暂无文章</p>
+            <a href="/" className="hover:text-white underline">
+              查看全部文章
+            </a>
+          </div>
+        )}
       </main>
 
       {selectedPost && (

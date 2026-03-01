@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { BlogPost, BlogIndex } from '@/types/blog'
 import Header from '@/components/Header'
@@ -8,7 +8,8 @@ import Footer from '@/components/Footer'
 import PhotoOverlay from '@/components/PhotoOverlay'
 import EditButton from '@/components/EditButton'
 
-export default function Home() {
+// 内部组件，使用 useSearchParams
+function HomeContent() {
   const [blogIndex, setBlogIndex] = useState<BlogIndex | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
@@ -167,5 +168,23 @@ export default function Home() {
       
       <EditButton />
     </div>
+  )
+}
+
+// 加载状态组件
+function HomeLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#242629]">
+      <div className="text-white text-xl">加载中...</div>
+    </div>
+  )
+}
+
+// 主页面组件
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
   )
 }

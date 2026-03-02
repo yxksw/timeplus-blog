@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { NextRequest } from 'next/server'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'timeplus-secret-key-change-in-production'
 const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { SiteConfig } from '@/types/blog'
-import { verifyToken } from '@/lib/auth-server'
+import { verifyToken, verifySecretKeyFromHeader } from '@/lib/auth-server'
 import { GitHubSyncConfig } from '@/types/github'
 import crypto from 'crypto'
 
@@ -220,6 +220,12 @@ export async function PUT(request: NextRequest) {
   try {
     if (!checkAuth(request)) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
+    }
+    
+    // 验证授权码
+    const hasValidSecretKey = verifySecretKeyFromHeader(request)
+    if (!hasValidSecretKey) {
+      return NextResponse.json({ error: '缺少授权码，无法修改网站配置' }, { status: 403 })
     }
     
     const githubConfig = getEnvConfig()

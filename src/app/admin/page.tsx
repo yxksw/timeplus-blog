@@ -45,6 +45,13 @@ function AdminContent() {
   const handleDelete = async (slug: string) => {
     if (!confirm('确定要删除这篇文章吗？')) return
     
+    // 请求授权码
+    const secretKey = prompt('请输入授权码以删除文章:')
+    if (!secretKey) {
+      alert('需要授权码才能删除文章')
+      return
+    }
+    
     setDeleting(slug)
     try {
       const token = getAuthToken()
@@ -53,6 +60,7 @@ function AdminContent() {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'x-admin-secret-key': secretKey,
         },
         body: JSON.stringify({}),
       })

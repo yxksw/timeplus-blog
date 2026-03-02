@@ -51,6 +51,13 @@ function ConfigContent() {
   }
 
   const handleSave = async () => {
+    // 请求授权码
+    const secretKey = prompt('请输入授权码以保存配置:')
+    if (!secretKey) {
+      alert('需要授权码才能修改配置')
+      return
+    }
+    
     setSaving(true)
     try {
       const token = getAuthToken()
@@ -59,6 +66,7 @@ function ConfigContent() {
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
+          'x-admin-secret-key': secretKey,
         },
         body: JSON.stringify(config),
       })

@@ -156,25 +156,24 @@ function WriteContent() {
       }
 
       const token = getAuthToken()
+      
+      // 请求授权码（创建和编辑都需要）
+      const secretKey = prompt(`请输入授权码以${editSlug ? '编辑' : '创建'}文章:`)
+      if (!secretKey) {
+        setLoading(false)
+        return
+      }
+      
       const headers: Record<string, string> = { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-      }
-      
-      // 如果是创建新文章，添加授权码到请求头
-      if (!editSlug) {
-        const secretKey = prompt('请输入授权码以创建文章:')
-        if (!secretKey) {
-          setLoading(false)
-          return
-        }
-        headers['x-admin-secret-key'] = secretKey
+        'x-admin-secret-key': secretKey,
       }
       
       const res = await fetch(`/api/blog/${formData.slug}`, {
         method: 'PUT',
         headers,
-        body: JSON.stringify(postData),
+        body: JSON.stringify({...postData, isEdit: !!editSlug}),
       })
 
       if (res.ok) {

@@ -262,9 +262,9 @@ export async function PUT(
       return NextResponse.json({ error: '内容不能为空' }, { status: 400 })
     }
     
-    // 如果是创建新文章（不是编辑），需要验证授权码
-    if (!body.isEdit && !hasValidSecretKey) {
-      return NextResponse.json({ error: '缺少授权码，无法创建新文章' }, { status: 403 })
+    // 验证授权码（创建和编辑都需要）
+    if (!hasValidSecretKey) {
+      return NextResponse.json({ error: '缺少授权码，无法保存文章' }, { status: 403 })
     }
     
     const markdown = createPostMarkdown(body)
@@ -291,6 +291,12 @@ export async function DELETE(
     const authCheck = checkAuth(request)
     if (!authCheck.valid) {
       return NextResponse.json({ error: authCheck.error }, { status: 401 })
+    }
+    
+    // 验证授权码
+    const hasValidSecretKey = verifySecretKeyFromHeader(request)
+    if (!hasValidSecretKey) {
+      return NextResponse.json({ error: '缺少授权码，无法删除文章' }, { status: 403 })
     }
     
     const config = getEnvConfig()

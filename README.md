@@ -14,6 +14,7 @@
 - 📝 **Markdown 写作** - 支持 Markdown 格式写作，实时预览
 - 🖼️ **图片相册** - 多图自动展示为相册，支持灯箱浏览、滑动切换
 - 🔐 **GitHub App 认证** - 安全的 GitHub App 私钥认证机制
+- 🔑 **授权码保护** - 创建文章需要授权码，防止未授权发布
 - ☁️ **GitHub 存储** - 文章和配置直接存储在 GitHub 仓库中
 - 🚀 **多平台部署** - 支持 Vercel、Cloudflare Pages、GitHub Pages 等
 - 📱 **响应式设计** - 完美适配桌面端、平板和移动端
@@ -55,7 +56,8 @@ cp .env.example .env.local
 ```env
 # 管理员认证 (必需)
 ADMIN_PASSWORD=your-secure-password
-JWT_SECRET=your-jwt-secret-key
+ADMIN_SECRET_KEY=your-secret-key-for-creating-posts
+JWT_SECRET=your-jwt-secret-key-change-in-production
 
 # GitHub 配置 (必需)
 GITHUB_OWNER=your-github-username
@@ -66,6 +68,10 @@ GITHUB_PRIVATE_KEY=-----BEGIN RSA PRIVATE KEY-----
 ...
 -----END RSA PRIVATE KEY-----
 ```
+
+**安全提示**: 
+- `ADMIN_PASSWORD` 用于登录后台
+- `ADMIN_SECRET_KEY` 用于创建文章，建议与密码不同，只告知可信人员
 
 ### 4. 创建 GitHub App
 
@@ -207,6 +213,7 @@ timeplus-blog/
 | 变量名 | 必填 | 说明 |
 |--------|------|------|
 | `ADMIN_PASSWORD` | ✅ | 管理员登录密码 |
+| `ADMIN_SECRET_KEY` | ✅ | 创建文章授权码 |
 | `JWT_SECRET` | ✅ | JWT 签名密钥 |
 | `GITHUB_OWNER` | ✅ | GitHub 用户名 |
 | `GITHUB_REPO` | ✅ | 博客仓库名 |

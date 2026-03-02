@@ -4,9 +4,11 @@ import { persist } from 'zustand/middleware'
 interface AdminState {
   isAuthenticated: boolean
   token: string | null
-  login: (token: string) => void
+  hasSecretKey: boolean
+  login: (token: string, hasSecretKey?: boolean) => void
   logout: () => void
   checkAuth: () => boolean
+  checkCanCreatePost: () => boolean
 }
 
 export const useAdminStore = create<AdminState>()(
@@ -14,21 +16,28 @@ export const useAdminStore = create<AdminState>()(
     (set, get) => ({
       isAuthenticated: false,
       token: null,
-      login: (token: string) => {
+      hasSecretKey: false,
+      login: (token: string, hasSecretKey: boolean = false) => {
         set({
           isAuthenticated: true,
           token,
+          hasSecretKey,
         })
       },
       logout: () => {
         set({
           isAuthenticated: false,
           token: null,
+          hasSecretKey: false,
         })
       },
       checkAuth: () => {
         const state = get()
         return state.isAuthenticated && !!state.token
+      },
+      checkCanCreatePost: () => {
+        const state = get()
+        return state.isAuthenticated && !!state.token && state.hasSecretKey
       },
     }),
     {

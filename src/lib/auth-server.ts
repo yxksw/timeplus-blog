@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'timeplus-secret-key-change-in-production'
+const ADMIN_SECRET_KEY = process.env.ADMIN_SECRET_KEY
 
 export function createToken(password: string): string | null {
   const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123'
@@ -37,4 +38,17 @@ export function verifyToken(token: string): boolean {
   } catch {
     return false
   }
+}
+
+// 验证授权码
+export function verifySecretKey(secretKey: string): boolean {
+  if (!ADMIN_SECRET_KEY) return false
+  return secretKey === ADMIN_SECRET_KEY
+}
+
+// 从请求头中获取授权码并验证
+export function verifySecretKeyFromHeader(request: NextRequest): boolean {
+  const secretKey = request.headers.get('x-admin-secret-key')
+  if (!secretKey) return false
+  return verifySecretKey(secretKey)
 }

@@ -7,7 +7,7 @@ import { useAdminStore, getAuthToken } from '@/lib/admin-auth'
 import { createPostMarkdown } from '@/lib/blog'
 import AuthGuard from '@/components/AuthGuard'
 import { slugify } from '@/lib/utils'
-import { Github, Loader2, Check, ExternalLink, ArrowLeft, ImagePlus } from 'lucide-react'
+import { Github, Loader2, Check, ExternalLink, ArrowLeft, ImagePlus, Lock } from 'lucide-react'
 
 interface GitHubEnvConfig {
   enabled: boolean
@@ -27,6 +27,11 @@ function WriteContent() {
   const [syncing, setSyncing] = useState(false)
   const [syncResult, setSyncResult] = useState<{ success: boolean; message: string; url?: string } | null>(null)
   const [gitHubConfig, setGitHubConfig] = useState<GitHubEnvConfig | null>(null)
+  const [showSecretKeyModal, setShowSecretKeyModal] = useState(false)
+  const [secretKey, setSecretKey] = useState('')
+  const [secretKeyError, setSecretKeyError] = useState('')
+  const { hasSecretKey, checkCanCreatePost } = useAdminStore()
+  const canCreatePost = checkCanCreatePost()
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -151,12 +156,24 @@ function WriteContent() {
       }
 
       const token = getAuthToken()
+      const headers: Record<string, string> = { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      }
+      
+      // 如果是创建新文章，添加授权码到请求头
+      if (!editSlug) {
+        const secretKey = prompt('请输入授权码以创建文章:')
+        if (!secretKey) {
+          setLoading(false)
+          return
+        }
+        headers['x-admin-secret-key'] = secretKey
+      }
+      
       const res = await fetch(`/api/blog/${formData.slug}`, {
         method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify(postData),
       })
 
@@ -195,6 +212,148 @@ function WriteContent() {
     return (
       <div className="min-h-screen bg-[#242629] flex items-center justify-center">
         <div className="text-white">加载文章中...</div>
+      </div>
+    )
+  }
+
+  // 验证授权码
+  const verifySecretKey = async () => {
+    if (!secretKey.trim()) {
+      setSecretKeyError('请输入授权码')
+      return
+    }
+
+    try {
+      const token = getAuthToken()
+      const res = await fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: '', // 空密码，只验证授权码
+          secretKey: secretKey.trim(),
+        }),
+      })
+
+      const data = await res.json()
+      
+      if (data.hasSecretKey) {
+        // 重新登录以更新状态
+        const loginRes = await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            password: prompt('请输入管理员密码:') || '',
+            secretKey: secretKey.trim(),
+          }),
+        })
+
+        const loginData = await loginRes.json()
+        if (loginData.success && loginData.hasSecretKey) {
+          useAdminStore.getState().login(loginData.token, true)
+          setShowSecretKeyModal(false)
+          setSecretKey('')
+          setSecretKeyError('')
+        } else {
+          setSecretKeyError('密码错误或授权码无效')
+        }
+      } else {
+        setSecretKeyError('授权码无效')
+      }
+    } catch (error) {
+      setSecretKeyError('验证失败，请重试')
+    }
+  }
+
+  // 如果没有授权码，显示提示
+  if (!canCreatePost && !editSlug) {
+    return (
+      <div className="min-h-screen bg-[#242629] text-white p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-4 mb-6 md:mb-8">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              title="返回"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-xl md:text-3xl font-bold">写文章</h1>
+          </div>
+
+          <div className="bg-[#1d1e22] rounded-lg p-6 md:p-8 text-center">
+            <Lock size={48} className="mx-auto mb-4 text-[#a0a0a1]" />
+            <h2 className="text-xl font-bold mb-2">需要授权码</h2>
+            <p className="text-[#a0a0a1] mb-6">
+              您当前只有查看权限，需要授权码才能创建新文章。
+              <br />
+              请联系管理员获取授权码。
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                onClick={() => setShowSecretKeyModal(true)}
+                className="px-6 py-2.5 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity"
+              >
+                输入授权码
+              </button>
+              <button
+                onClick={() => router.back()}
+                className="px-6 py-2.5 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors"
+              >
+                返回
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Secret Key Modal */}
+        {showSecretKeyModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-[#1d1e22] rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-bold mb-4">输入授权码</h3>
+              <input
+                type="password"
+                value={secretKey}
+                onChange={(e) => {
+                  setSecretKey(e.target.value)
+                  setSecretKeyError('')
+                }}
+                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none mb-2"
+                placeholder="请输入授权码"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    verifySecretKey()
+                  }
+                }}
+              />
+              {secretKeyError && (
+                <p className="text-red-400 text-sm mb-4">{secretKeyError}</p>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={verifySecretKey}
+                  className="flex-1 px-4 py-2 bg-[var(--heo-theme)] text-white rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  验证
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSecretKeyModal(false)
+                    setSecretKey('')
+                    setSecretKeyError('')
+                  }}
+                  className="px-4 py-2 bg-[#34363b] text-white rounded-lg hover:bg-[#404247] transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     )
   }

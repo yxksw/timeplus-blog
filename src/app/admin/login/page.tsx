@@ -8,6 +8,7 @@ export default function AdminLoginPage() {
   const router = useRouter()
   const { login } = useAdminStore()
   const [password, setPassword] = useState('')
+  const [secretKey, setSecretKey] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -20,13 +21,13 @@ export default function AdminLoginPage() {
       const res = await fetch('/api/admin/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, secretKey: secretKey || undefined }),
       })
 
       const data = await res.json()
 
       if (res.ok && data.success) {
-        login(data.token)
+        login(data.token, data.hasSecretKey)
         router.push('/admin')
       } else {
         setError(data.error || '登录失败')
@@ -66,6 +67,19 @@ export default function AdminLoginPage() {
               />
             </div>
 
+            <div>
+              <label className="block text-sm text-[#a0a0a1] mb-2">
+                授权码 <span className="text-xs">（可选，需要创建文章时填写）</span>
+              </label>
+              <input
+                type="password"
+                value={secretKey}
+                onChange={(e) => setSecretKey(e.target.value)}
+                className="w-full px-4 py-3 bg-[#34363b] border border-[#36383c] rounded-lg text-white focus:border-[var(--heo-theme)] outline-none"
+                placeholder="输入授权码（可选）"
+              />
+            </div>
+
             {error && (
               <div className="text-red-400 text-sm text-center">{error}</div>
             )}
@@ -95,6 +109,9 @@ export default function AdminLoginPage() {
             </p>
             <p className="text-xs text-[#a0a0a1] mt-2">
               可通过环境变量 <code className="bg-[#34363b] px-1 rounded">ADMIN_PASSWORD</code> 修改密码
+            </p>
+            <p className="text-xs text-[#a0a0a1] mt-2">
+              授权码: 通过 <code className="bg-[#34363b] px-1 rounded">ADMIN_SECRET_KEY</code> 设置，用于创建文章权限控制
             </p>
           </div>
         </div>

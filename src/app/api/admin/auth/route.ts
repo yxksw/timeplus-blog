@@ -1,24 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createToken, verifyToken } from '@/lib/auth-server'
+import { createToken, verifyToken, verifySecretKey } from '@/lib/auth-server'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { password } = body
+    const { password, secretKey } = body
     
     if (!password) {
       return NextResponse.json({ error: '密码不能为空' }, { status: 400 })
     }
     
+    // 验证密码
     const token = createToken(password)
     
     if (!token) {
       return NextResponse.json({ error: '密码错误' }, { status: 401 })
     }
     
+    // 验证授权码（如果提供了）
+    let hasSecretKey = false
+    if (secretKey) {
+      hasSecretKey = verifySecretKey(secretKey)
+    }
+    
     return NextResponse.json({ 
       success: true, 
       token,
+      hasSecretKey,
       message: '登录成功' 
     })
   } catch (error) {

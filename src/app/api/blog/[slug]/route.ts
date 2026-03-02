@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseBlogPost } from '@/lib/blog'
-import { verifyToken } from '@/lib/auth-server'
+import { verifyToken, verifySecretKeyFromHeader } from '@/lib/auth-server'
 import { GitHubSyncConfig } from '@/types/github'
 import crypto from 'crypto'
 
@@ -233,6 +233,9 @@ export async function PUT(
       return NextResponse.json({ error: authCheck.error }, { status: 401 })
     }
     
+    // 验证授权码（创建新文章时需要）
+    const hasValidSecretKey = verifySecretKeyFromHeader(request)
+    
     const config = getEnvConfig()
     if (!config) {
       return NextResponse.json({ error: 'GitHub 未配置，请设置环境变量' }, { status: 500 })
@@ -257,6 +260,11 @@ export async function PUT(
     
     if (!body.content) {
       return NextResponse.json({ error: '内容不能为空' }, { status: 400 })
+    }
+    
+    // 如果是创建新文章（不是编辑），需要验证授权码
+    if (!body.isEdit && !hasValidSecretKey) {
+      return NextResponse.json({ error: '缺少授权码，无法创建新文章' }, { status: 403 })
     }
     
     const markdown = createPostMarkdown(body)
